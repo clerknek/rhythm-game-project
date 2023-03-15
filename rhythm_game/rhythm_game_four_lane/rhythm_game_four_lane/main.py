@@ -1,5 +1,6 @@
 import pygame, math, time, os, random, aubio
 
+__version__ = '1.0.2'
 
 # pygame moduel을 import하고 초기화한다.
 pygame.init()
@@ -128,7 +129,6 @@ rate_data = [0, 0, 0, 0]
 def rating(n):
     # rate_data의 n번째 노트들의 정보를 가져와 판단한다.
     global combo, miss_anim, last_combo, combo_effect, combo_effect2, combo_time, rate
-    print((h/12)*9, rate_data[0], speed*(h/900)*15)
     if abs((h/12)*9 - rate_data[n-1] < 950*speed*(h/900) and (h/12)*9 - rate_data[n-1] >= 200*speed*(h/900)):
         last_combo = combo
         miss_anim = 1
