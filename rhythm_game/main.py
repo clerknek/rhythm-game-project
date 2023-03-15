@@ -1,11 +1,13 @@
 import pygame, math, time, os, random
 
+# 버전 정보
+__version__ = '1.0.1'
 
 # pygame moduel을 import하고 초기화한다.
 pygame.init()
 
 # 창 정보와 관련된 변수를 정의한다.
-w = 1600
+w = 1000
 h = w * (9 / 16)
 
 # 창 정보를 저장할 변수를 생성한다. 모든 효과는 screen에 띄운다.
@@ -39,8 +41,8 @@ t2 = []
 t3 = []
 t4 = []
 
-# 게임 화면에 띄울 문자열을 생성한다.
-rate = 'PERFECT'
+# 시작할 때 게임 화면에 띄울 문자열을 생성한다.
+rate = 'START'
 
 # font 경로를 설정한다.
 Cpath = os.path.dirname(__file__)
@@ -85,23 +87,12 @@ miss_anim = 0
 last_combo = 0
 combo_time = Time + 1
 
-spin = 0
-
 # 점수를 판정하는 함수를 만든다.
 rate_data = [0, 0, 0, 0]
 def rating(n):
     # rate_data의 n번째 노트들의 정보를 가져와 판단한다.
     global combo, miss_anim, last_combo, combo_effect, combo_effect2, combo_time, rate
-    print((h/12)*9, rate_data[0], speed*(h/900)*15)
-    if abs((h/12)*9 - rate_data[n-1] < 950*speed*(h/900) and (h/12)*9 - rate_data[n-1] >= 200*speed*(h/900)):
-        last_combo = combo
-        miss_anim = 1
-        combo = 0
-        combo_effect = 0.2
-        combo_time = Time + 1
-        combo_effect2 = 1.3
-        rate = 'WORST'
-    if abs((h/12)*9 - rate_data[n-1]) < 200*speed*(h/900) and abs((h/12)*9 - rate_data[n-1]) >= 100*speed*(h/900):
+    if abs((h/12)*9 - rate_data[n-1] < 950*speed*(h/900)) and abs((h/12)*9 - rate_data[n-1] >= 200*speed*(h/900)):
         last_combo = combo
         miss_anim = 1
         combo = 0
@@ -109,24 +100,18 @@ def rating(n):
         combo_time = Time + 1
         combo_effect2 = 1.3
         rate = 'BAD'
-    if abs((h/12)*9 - rate_data[n-1]) < 100*speed*(h/900) and abs((h/12)*9 - rate_data[n-1]) >= 50*speed*(h/900):
-        combo += 1
-        combo_effect = 0.2
-        combo_time = Time + 1
-        combo_effect2 = 1.3
-        rate = 'GOOD'
-    if abs((h/12)*9 - rate_data[n-1]) < 50*speed*(h/900) and abs((h/12)*9 - rate_data[n-1]) >= 15*speed*(h/900):
-        combo += 1
-        combo_effect = 0.2
-        combo_time = Time + 1
-        combo_effect2 = 1.3
-        rate = 'GREAT'
-    if abs((h/12)*9 - rate_data[n-1]) < 15*speed*(h/900) and abs((h/12)*9 - rate_data[n-1]) >= 0*speed*(h/900):
+    if abs((h/12)*9 - rate_data[n-1]) < 200*speed*(h/900) and abs((h/12)*9 - rate_data[n-1]) >= 100*speed*(h/900):
         combo += 1
         combo_effect = 0.2
         combo_time = Time + 1
         combo_effect2 = 1.3
         rate = 'PERFECT'
+    if abs((h/12)*9 - rate_data[n-1]) < 100*speed*(h/900) and abs((h/12)*9 - rate_data[n-1]) >= 0*speed*(h/900):
+        combo += 1
+        combo_effect = 0.2
+        combo_time = Time + 1
+        combo_effect2 = 1.3
+        rate = 'EXCELLENT'
 
 
 ##############################################################################################
@@ -147,7 +132,7 @@ while main:
 
         
         # 생성되는 노트의 수와 노트가 생성되는 lane 번호를 설정하는 부분
-        if Time > 0.5 * notesumt:
+        if Time > 1 * notesumt:
             notesumt += 1
             while num1 == num2:
                 num1 = random.randint(1, 4)
@@ -247,27 +232,26 @@ while main:
 
 # gear==========================================================================================
         # gear background
-        pygame.draw.rect(screen, (0, 0, 0), (w / 2 - w / 8, -int(w / 100), w / 4, h + int(w / 50)))
+        pygame.draw.rect(screen, (0, 0, 0), (w/2 - w*(4/10), -int(w/100), w*(8/10), h + int(w / 50)))
 
 # key 효과===================================================================================
 # key를 눌렀을 때 생기는 효과를 만든다.
         for i in range(7):
             i += 1
-            pygame.draw.rect(screen, (200 - ((200 / 7) * i), 200 - ((200 / 7) * i), 200 - ((200 / 7) * i)), (w / 2 - w / 8 + w / 32 - (w / 32) * keys[0], (h / 12) * 9 - (h / 30) * keys[0] * i, w / 16 * keys[0], (h / 35) / i))
+            pygame.draw.rect(screen, (200-((200/7)*i), 200-((200/7)*i), 200-((200/7)*i)), (w/2 - w*(4/10) + w/32 - (w/32) * keys[0], (h/12)*9 - (h/30) * keys[0] * i, w*(2/10) * keys[0], (h/35) / i))
         for i in range(7):
             i += 1
-            pygame.draw.rect(screen, (200 - ((200 / 7) * i), 200 - ((200 / 7) * i), 200 - ((200 / 7) * i)), (w / 2 - w / 16 + w / 32 - (w / 32) * keys[1], (h / 12) * 9 - (h / 30) * keys[1] * i, w / 16 * keys[1], (h / 35) / i))
+            pygame.draw.rect(screen, (200-((200/7)*i), 200-((200/7)*i), 200-((200/7)*i)), (w/2 - w*(2/10) + w/32 - (w/32) * keys[1], (h/12)*9 - (h/30) * keys[1] * i, w*(2/10) * keys[1], (h/35) / i))
         for i in range(7):
             i += 1
-            pygame.draw.rect(screen, (200 - ((200 / 7) * i), 200 - ((200 / 7) * i), 200 - ((200 / 7) * i)), (w / 2 + w / 32 - (w / 32) * keys[2], (h / 12) * 9 - (h / 30) * keys[2] * i, w / 16 * keys[2], (h / 35) / i))
+            pygame.draw.rect(screen, (200-((200/7)*i), 200-((200/7)*i), 200-((200/7)*i)), (w/2            + w/32 - (w/32) * keys[2], (h/12)*9 - (h/30) * keys[2] * i, w*(2/10) * keys[2], (h/35) / i))
         for i in range(7):
             i += 1
-            pygame.draw.rect(screen, (200 - ((200 / 7) * i), 200 - ((200 / 7) * i), 200 - ((200 / 7) * i)), (w / 2 + w / 16 + w / 32 - (w / 32) * keys[3], (h / 12) * 9 - (h / 30) * keys[3] * i, w / 16 * keys[3], (h / 35) / i))
+            pygame.draw.rect(screen, (200-((200/7)*i), 200-((200/7)*i), 200-((200/7)*i)), (w/2 + w*(2/10) + w/32 - (w/32) * keys[3], (h/12)*9 - (h/30) * keys[3] * i, w*(2/10) * keys[3], (h/35) / i))
 
 
         # gear line
-        pygame.draw.rect(screen, (255, 255, 255), [w / 2 - w / 8, -int(w / 100), w / 4, h + int(w / 50)], int(w / 100))
-
+        pygame.draw.rect(screen, (255, 255, 255), (w/2 - w*(4/10), -int(w/100), w*(8/10), h + int(w/50)), int(w/200))
 
 
 # note=========================================================================================
@@ -276,9 +260,12 @@ while main:
             # 렉이 걸려도 노트는 일정한 속도로 내려오도록 하는 코드를 작성한다.
             # 판정선 위치 기준             현재 시간 - 노트 소환 시간
             #                             시간이 경과할수록 이 부분의 차가 커져 노트가 내려간다.
-            tile_data[0] = (h / 12) * 9 + (Time - tile_data[1]) * 350 * speed * (h / 900)
-            pygame.draw.rect(screen, (255, 255, 255), (w / 2 - w / 8, tile_data[0] - h / 100, w / 16, h / 50))
+            tile_data[0] = (h / 12) * 9 + (Time - tile_data[1]) * speed * 350 * (h / 900)
+            pygame.draw.rect(screen, (255, 255, 255), (w/2 - w*(4/10), tile_data[0] - h / 100, w*(2/10), h / 50))
             # 놓친 노트는 없앤다.
+
+            # (h/12) * 9
+
             if tile_data[0] > h - (h / 9):
                 # 미스 판정을 만든다. 놓치면 해당 노트를 삭제한다.
                 last_combo = combo
@@ -293,7 +280,7 @@ while main:
         
         for tile_data in t2:
             tile_data[0] = (h / 12) * 9 + (Time - tile_data[1]) * 350 * speed * (h / 900)
-            pygame.draw.rect(screen, (255, 255, 255), (w / 2 - w / 16, tile_data[0] - h / 100, w / 16, h / 50))
+            pygame.draw.rect(screen, (255, 255, 255), (w/2 - w*(2/10), tile_data[0] - h / 100, w*(2/10), h / 50))
             if tile_data[0] > h - (h / 9):
                 last_combo = combo
                 miss_anim = 1
@@ -306,7 +293,7 @@ while main:
         
         for tile_data in t3:
             tile_data[0] = (h / 12) * 9 + (Time - tile_data[1]) * 350 * speed * (h / 900)
-            pygame.draw.rect(screen, (255, 255, 255), (w / 2, tile_data[0] - h / 100, w / 16, h / 50))
+            pygame.draw.rect(screen, (255, 255, 255), (w/2           , tile_data[0] - h / 100, w*(2/10), h / 50))
             if tile_data[0] > h - (h / 9):
                 last_combo = combo
                 miss_anim = 1
@@ -319,7 +306,7 @@ while main:
         
         for tile_data in t4:
             tile_data[0] = (h / 12) * 9 + (Time - tile_data[1]) * 350 * speed * (h / 900)
-            pygame.draw.rect(screen, (255, 255, 255), (w / 2 + w / 16, tile_data[0] - h / 100, w / 16, h / 50))
+            pygame.draw.rect(screen, (255, 255, 255), (w/2 + w*(2/10), tile_data[0] - h / 100, w*(2/10), h / 50))
             if tile_data[0] > h - (h / 9):
                 last_combo = combo
                 miss_anim = 1
@@ -336,8 +323,8 @@ while main:
 
 # blinder=============================================================================================
         # 판정선을 그린다.
-        pygame.draw.rect(screen, (0, 0, 0), (w / 2 - w / 8, (h / 12) * 9, w / 4, h / 2))
-        pygame.draw.rect(screen, (255, 0, 255), (w / 2 - w / 8, (h / 12) * 9, w / 4, h / 2), int(h / 100))
+        pygame.draw.rect(screen, (0, 0, 0), (w/2 - w*(4/10), (h/12) * 9, w*(8/10), h / 2))
+        pygame.draw.rect(screen, (255, 255, 255), (w/2 - w*(4/10), (h/12) * 9, w*(8/10), h / 2), int(h / 100))
 
 
 
@@ -345,22 +332,17 @@ while main:
 
 # key==================================================================================================
 # 배경 화면을 꾸민다.
-        pygame.draw.rect(screen, (255 - 100 * keys[0],255 - 100 * keys[0], 255 - 100 * keys[0]), (w / 2 - w / 9, (h / 24) * 19 + (h / 48) * keys[0], w / 27, h / 8), int(h / 150))
-        pygame.draw.rect(screen, (255 - 100 * keys[3],255 - 100 * keys[3], 255 - 100 * keys[3]), (w / 2 + w / 13.5, (h / 24) * 19 + (h / 48) * keys[3], w / 27, h / 8), int(h / 150))
-
-        pygame.draw.circle(screen, (150, 150, 150), (w / 2, (h / 24) * 21), (w / 20), int(h / 200))
-        pygame.draw.line(screen, (150, 150, 150), (w / 2 - math.sin(spin) * 25 * (w / 1600), (h / 24) * 21 - math.cos(spin) * 25 * (w / 1600)), (w / 2 + math.sin(spin) * 25 * (w / 1600), (h / 24) * 21 + math.cos(spin) * 25 * (w / 1600)), int(w / 400))
-        spin += (speed / 20 * (maxframe / fps))
-
-
-        pygame.draw.rect(screen, (255 - 100 * keys[1], 255 - 100 * keys[1], 255 - 100 * keys[1]), (w / 2 - w / 18, (h / 48) * 39 + (h / 48) * keys[1], w / 27, h / 8))
-        pygame.draw.rect(screen, (0,0, 0), (w / 2 - w / 18, (h / 48) * 43 + (h / 48) * (keys[1] * 1.2), w / 27, h / 64), int(h / 150))
-        pygame.draw.rect(screen, (50,50, 50), (w / 2 - w / 18, (h / 48) * 39 + (h / 48) * keys[1], w / 27, h / 8), int(h / 150))
-
-        pygame.draw.rect(screen, (255 - 100 * keys[2], 255 - 100 * keys[2], 255 - 100 * keys[2]), (w / 2 + w / 58, (h / 48) * 39 + (h / 48) * keys[2], w / 27, h / 8))
-        pygame.draw.rect(screen, (0,0, 0), (w / 2 + w / 58, (h / 48) * 43 + (h / 48) * (keys[2] * 1.2), w / 27, h / 64), int(h / 150))
-        pygame.draw.rect(screen, (50,50, 50), (w / 2 + w / 58, (h / 48) * 39 + (h / 48) * keys[2], w / 27, h / 8), int(h / 150))
-
+        pygame.draw.circle(screen, (255 - 100 * keys[0], 255 - 100 * keys[0], 255 - 100 * keys[0]), (w/2 - w*(3/10), (h / 24) * 21 + (h / 50) * keys[0]), (w / 20), int(h / 100))
+        pygame.draw.circle(screen, (255 - 100 * keys[0], 255 - 100 * keys[0], 255 - 100 * keys[0]), (w/2 - w*(3/10), (h / 24) * 21 + (h / 50) * keys[0]), (w / 30))
+        
+        pygame.draw.circle(screen, (255 - 100 * keys[1], 255 - 100 * keys[1], 255 - 100 * keys[1]), (w/2 - w*(1/10), (h / 24) * 21 + (h / 50) * keys[1]), (w / 20), int(h / 100))
+        pygame.draw.circle(screen, (255 - 100 * keys[1], 255 - 100 * keys[1], 255 - 100 * keys[1]), (w/2 - w*(1/10), (h / 24) * 21 + (h / 50) * keys[1]), (w / 30))
+        
+        pygame.draw.circle(screen, (255 - 100 * keys[2], 255 - 100 * keys[2], 255 - 100 * keys[2]), (w/2 + w*(1/10), (h / 24) * 21 + (h / 50) * keys[2]), (w / 20), int(h / 100))
+        pygame.draw.circle(screen, (255 - 100 * keys[2], 255 - 100 * keys[2], 255 - 100 * keys[2]), (w/2 + w*(1/10), (h / 24) * 21 + (h / 50) * keys[2]), (w / 30))
+        
+        pygame.draw.circle(screen, (255 - 100 * keys[3], 255 - 100 * keys[3], 255 - 100 * keys[3]), (w/2 + w*(3/10), (h / 24) * 21 + (h / 50) * keys[3]), (w / 20), int(h / 100))
+        pygame.draw.circle(screen, (255 - 100 * keys[3], 255 - 100 * keys[3], 255 - 100 * keys[3]), (w/2 + w*(3/10), (h / 24) * 21 + (h / 50) * keys[3]), (w / 30))
 
 
         # font를 화면에 띄운다.
@@ -375,5 +357,6 @@ while main:
 
         # frame 제한 코드
         clock.tick(maxframe)
+
     main = False
     ingame = False
