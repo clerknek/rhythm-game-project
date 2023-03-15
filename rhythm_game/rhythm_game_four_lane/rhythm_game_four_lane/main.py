@@ -1,10 +1,11 @@
 import pygame, math, time, os, random
 
+
 # pygame moduel을 import하고 초기화한다.
 pygame.init()
 
 # 창 정보와 관련된 변수를 정의한다.
-w = 1000
+w = 1600
 h = w * (9 / 16)
 
 # 창 정보를 저장할 변수를 생성한다. 모든 효과는 screen에 띄운다.
@@ -91,6 +92,7 @@ rate_data = [0, 0, 0, 0]
 def rating(n):
     # rate_data의 n번째 노트들의 정보를 가져와 판단한다.
     global combo, miss_anim, last_combo, combo_effect, combo_effect2, combo_time, rate
+    print((h/12)*9, rate_data[0], speed*(h/900)*15)
     if abs((h/12)*9 - rate_data[n-1] < 950*speed*(h/900) and (h/12)*9 - rate_data[n-1] >= 200*speed*(h/900)):
         last_combo = combo
         miss_anim = 1
@@ -136,11 +138,11 @@ while main:
         if len(t1) > 0:
             rate_data[0] = t1[0][0]
         if len(t2) > 0:
-            rate_data[0] = t2[0][0]
+            rate_data[1] = t2[0][0]
         if len(t3) > 0:
-            rate_data[0] = t3[0][0]
+            rate_data[2] = t3[0][0]
         if len(t4) > 0:
-            rate_data[0] = t4[0][0]
+            rate_data[3] = t4[0][0]
 
 
         
@@ -184,22 +186,30 @@ while main:
                     keyset[0] = 1
                     if len(t1) > 0:
                         if t1[0][0] > h / 3:
+                            rating(1)
                             del t1[0]
+                    
                 if event.key == pygame.K_f:
                     keyset[1] = 1
                     if len(t2) > 0:
                         if t2[0][0] > h / 3:
+                            rating(2)
                             del t2[0]
+                    
                 if event.key == pygame.K_j:
                     keyset[2] = 1
                     if len(t3) > 0:
                         if t3[0][0] > h / 3:
+                            rating(3)
                             del t3[0]
+                    
                 if event.key == pygame.K_k:
                     keyset[3] = 1
                     if len(t4) > 0:
                         if t4[0][0] > h / 3:
+                            rating(4)
                             del t4[0]
+                    
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_d:
                     keyset[0] = 0
@@ -256,7 +266,7 @@ while main:
 
 
         # gear line
-        pygame.draw.rect(screen, (255, 255, 255), (w / 2 - w / 8, -int(w / 100), w / 4, h + int(w / 50)), int(w / 100))
+        pygame.draw.rect(screen, (255, 255, 255), [w / 2 - w / 8, -int(w / 100), w / 4, h + int(w / 50)], int(w / 100))
 
 
 
@@ -327,7 +337,7 @@ while main:
 # blinder=============================================================================================
         # 판정선을 그린다.
         pygame.draw.rect(screen, (0, 0, 0), (w / 2 - w / 8, (h / 12) * 9, w / 4, h / 2))
-        pygame.draw.rect(screen, (255, 255, 255), (w / 2 - w / 8, (h / 12) * 9, w / 4, h / 2), int(h / 100))
+        pygame.draw.rect(screen, (255, 0, 255), (w / 2 - w / 8, (h / 12) * 9, w / 4, h / 2), int(h / 100))
 
 
 
