@@ -1,7 +1,7 @@
 import pygame, math, time, os, random, aubio
 
 # 버전 정보
-__version__ = '1.1.0'
+__version__ = '1.1.1'
 
 # pygame moduel을 import하고 초기화한다.
 pygame.init()
@@ -9,6 +9,14 @@ pygame.init()
 # 창 정보와 관련된 변수를 정의한다.
 w = 1000
 h = w * (9 / 16)
+
+# lane 좌표 설정
+width1 = w/2 - w*(4/10)
+width2 = w/2 - w*(2/10)
+width3 = w/2
+width4 = w/2 + w*(2/10)
+width5 = w/2 + w*(4/10)
+
 
 # 창 정보를 저장할 변수를 생성한다. 모든 효과는 screen에 띄운다.
 screen = pygame.display.set_mode((w, h))
@@ -221,52 +229,52 @@ while main:
             fps = maxframe
 
 
+        # (width, height)로 mouse의 position을 딴다.
+        mouse_position = pygame.mouse.get_pos()
+
         # 이벤트 감지 코드를 작성한다.
         for event in pygame.event.get():
             # 창을 나가는 동작을 감지한다.
             if event.type == pygame.QUIT:
                 # 창을 지운다.
                 pygame.quit()
-            # 입력 키를 설정한다.
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_d:
+            # 입력 키를 마우스로 설정한다.
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                # lane 1
+                if  width1 <= mouse_position[0] and mouse_position[0] <= width2 and event.button == 1:
                     keyset[0] = 1
                     if len(t1) > 0:
                         if t1[0][0] > h / 3:
                             rating(1)
                             del t1[0]
                     
-                if event.key == pygame.K_f:
+                # lane 2
+                if  width2 < mouse_position[0] and mouse_position[0] <= width3 and event.button == 1:
                     keyset[1] = 1
                     if len(t2) > 0:
                         if t2[0][0] > h / 3:
                             rating(2)
                             del t2[0]
                     
-                if event.key == pygame.K_j:
+                # lane 3
+                if  width3 < mouse_position[0] and mouse_position[0] <= width4 and event.button == 1:
                     keyset[2] = 1
                     if len(t3) > 0:
                         if t3[0][0] > h / 3:
                             rating(3)
                             del t3[0]
                     
-                if event.key == pygame.K_k:
+                # lane 4
+                if  width4 < mouse_position[0] and mouse_position[0] <= width5 and event.button == 1:
                     keyset[3] = 1
                     if len(t4) > 0:
                         if t4[0][0] > h / 3:
                             rating(4)
                             del t4[0]
-                    
-            if event.type == pygame.KEYUP:
-                if event.key == pygame.K_d:
-                    keyset[0] = 0
-                if event.key == pygame.K_f:
-                    keyset[1] = 0
-                if event.key == pygame.K_j:
-                    keyset[2] = 0
-                if event.key == pygame.K_k:
-                    keyset[3] = 0       
-    
+            
+            # 마우스 버튼이 떼지면 모든 keyset 값을 0으로 바꾼다.
+            if event.type == pygame.MOUSEBUTTONUP:     
+                keyset[0], keyset[1], keyset[2], keyset[3] = 0, 0, 0, 0
 
 # gear========================================================================================
         # 화면을 그린다. 단색으로 채운다.
