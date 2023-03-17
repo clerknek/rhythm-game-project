@@ -5,14 +5,23 @@ import mediapipe as mp
 import numpy as np
 
 # 버전 정보
+<<<<<<< Updated upstream
 __version__ = '1.2.0'
+=======
+__version__ = '1.2.2'
+>>>>>>> Stashed changes
 
 # 캠 변수 설정
 mpHands = mp.solutions.hands
 hands = mpHands.Hands()
 mpDraw = mp.solutions.drawing_utils
 
+<<<<<<< Updated upstream
 cam = cv2.VideoCapture(1)
+=======
+# cam = cv2.VideoCapture(1) # mac User.
+cam = cv2.VideoCapture(0) # Window User.
+>>>>>>> Stashed changes
 
 
 # pygame moduel을 import하고 초기화한다.
@@ -24,11 +33,19 @@ h = w * (9 / 16)
 
 # 나누기 변수를 정의한다.(코드 최적화를 위해)
 a1 = h / 12
+<<<<<<< Updated upstream
 a2 =  w / 45
 a3 = 4 / 10
 a4 = 8 / 10
 a5 = h / 900
 a6 = w*(1 / 2)
+=======
+a2 = w / 45
+a3 = 4 / 10
+a4 = 8 / 10
+a5 = h / 900
+a6 = w * (1 / 2)
+>>>>>>> Stashed changes
 a7 = w / 32
 a8 = h / 30
 a9 = h / 35
@@ -37,7 +54,11 @@ a11 = h / 24
 a12 = h / 100
 a13 = w / 20
 a14 = w / 30
+<<<<<<< Updated upstream
 a15 = h / 3 
+=======
+a15 = h / 2
+>>>>>>> Stashed changes
 
 # lane 좌표 설정
 width1 = w*(1/2) - w*a3
