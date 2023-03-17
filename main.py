@@ -3,7 +3,16 @@ import mediapipe as mp
 from google.protobuf.json_format import MessageToDict
 
 # 버전 정보
-__version__ = '1.2.1'
+__version__ = '1.2.2'
+
+
+# 캠 변수 설정
+mpHands = mp.solutions.hands
+hands = mpHands.Hands()
+mpDraw = mp.solutions.drawing_utils
+
+# cam = cv2.VideoCapture(1) # mac User.
+cam = cv2.VideoCapture(0) # Window User.
 
 
 #############################################################################################
@@ -12,6 +21,24 @@ __version__ = '1.2.1'
 # 창 정보와 관련된 변수를 정의한다.
 w = 1000
 h = w * (9 / 16)
+
+
+# 나누기 변수를 정의한다.(코드 최적화를 위해)
+a1 = h / 12
+a2 = w / 45
+a3 = 4 / 10
+a4 = 8 / 10
+a5 = h / 900
+a6 = w * (1 / 2)
+a7 = w / 32
+a8 = h / 30
+a9 = h / 35
+a10 = h / 50
+a11 = h / 24
+a12 = h / 100
+a13 = w / 20
+a14 = w / 30
+a15 = h / 2
 
 # lane 좌표 설정
 width1 = w/2 - w*(4/10)
