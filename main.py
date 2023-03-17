@@ -5,7 +5,7 @@ import mediapipe as mp
 import numpy as np
 
 # 버전 정보
-__version__ = '1.2.2'
+__version__ = '1.3.0'
 
 # 캠 변수 설정
 mpHands = mp.solutions.hands
@@ -401,57 +401,80 @@ while main:
 
         # mouse==============================================================================
     # 손 위치를 표시한다.
+    # print('---------')
+    grab_TF = [2, 2] # left, right
     if results.multi_hand_landmarks:
         for hand_landmarks in results.multi_hand_landmarks:
             x, y = hand_landmarks.landmark[9].x*w, hand_landmarks.landmark[9].y*h
             x1, y1 = hand_landmarks.landmark[12].x*w, hand_landmarks.landmark[12].y*h
 
+            if grab_TF[0] == 2:
+                if y1 > y:
+                    grab_TF[0] = True
+                    if width1 <= x and x <= width2:
+                        keyset[0] = 1
+                    if width2 <= x and x <= width3:
+                        keyset[1] = 1
+                    if width3 <= x and x <= width4:
+                        keyset[2] = 1
+                    if width4 <= x and x <= width5:
+                        keyset[3] = 1
+                else:
+                    grab_TF[0] = False
+            elif grab_TF[1] == 2:
+                if y1 > y:
+                    grab_TF[1] = True
+                    if width1 <= x and x <= width2:
+                        keyset[0] = 1
+                    if width2 <= x and x <= width3:
+                        keyset[1] = 1
+                    if width3 <= x and x <= width4:
+                        keyset[2] = 1
+                    if width4 <= x and x <= width5:
+                        keyset[3] = 1
+                else:
+                    grab_TF[1] = False
+
             pygame.draw.circle(screen, (0, 255, 0), (int(x), int(y)), 10)
-            if y1 > y:
+            if grab_TF[0] == True or grab_TF[1] == True:
                 # 손을 쥐었을 때
-                # 1. 위치를 나타내는 원의 색 변경
-                # 2. 그 공간에 박스 표시
+                # 위치를 나타내는 원의 색 변경
                 hand_status = "grab"
                 pygame.draw.circle(screen, (0, 255, 255), (int(x), int(y)), 10)
-
-            else:
-                hand_status = "normal"
-            current_hand_status = hand_status
-            if hand_status=='grab':
-                if width1 <= x and x <= width2:
-                    keyset[0] = 1
+                if keyset[0] == 1:
                     if len(t1) > 0:
                         if t1[0][0] > a15:
                             rating(1)
                             del t1[0]
                 
                 # lane 2
-                if  width2 < x and x <= width3:
-                    keyset[1] = 1
+                if keyset[1] == 1:
                     if len(t2) > 0:
                         if t2[0][0] > a15:
                             rating(2)
                             del t2[0]
                 
                 # lane 3
-                if  width3 < x and x <= width4:
-                    keyset[2] = 1
+                if keyset[2] == 1:
                     if len(t3) > 0:
                         if t3[0][0] > a15:
                             rating(3)
                             del t3[0]
                 
                 # lane 4
-                if  width4 < x and x <= width5:
-                    keyset[3] = 1
+                if keyset[3] == 1:
                     if len(t4) > 0:
                         if t4[0][0] > a15:
                             rating(4)
                             del t4[0]
-        
-            # 마우스 버튼이 떼지면 모든 keyset 값을 0으로 바꾼다.
-            else:     
+            else:
+                hand_status = 'normal'
                 keyset[0], keyset[1], keyset[2], keyset[3] = 0, 0, 0, 0
+
+    else:
+        hand_status = 'normal'
+        keyset[0], keyset[1], keyset[2], keyset[3] = 0, 0, 0, 0
+
 
     # 화면을 업데이트하는 함수를 정의한다. 이 코드가 없으면 화면이 보이지 않는다.
     pygame.display.flip()
