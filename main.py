@@ -1,20 +1,16 @@
 import pygame, time, os, random, aubio
-
 import cv2
 import mediapipe as mp
-import numpy as np
 
 # 버전 정보
 __version__ = '1.3.0'
 
-# 캠 변수 설정
+# hand detection instance 생성
 mpHands = mp.solutions.hands
-hands = mpHands.Hands()
-mpDraw = mp.solutions.drawing_utils
+hands = mpHands.Hands(min_detection_confidence = 0.3)
 
 # cam = cv2.VideoCapture(1) # mac User.
 cam = cv2.VideoCapture(0) # Window User.
-
 
 # pygame moduel을 import하고 초기화한다.
 pygame.init()
@@ -47,7 +43,6 @@ width3 = w*(1/2)
 width4 = w*(1/2) + w*(2/10)
 width5 = w*(1/2) + w*a3
 
-
 # 창 정보를 저장할 변수를 생성한다. 모든 효과는 screen에 띄운다.
 screen = pygame.display.set_mode((w, h))
 
@@ -56,7 +51,6 @@ clock = pygame.time.Clock()
 
 # 변수를 정의한다.
 main = True
-ingame = True
 
 # 키 누름을 감지하는 list를 정의한다.
 keys = [0, 0, 0, 0]
@@ -90,10 +84,8 @@ ingame_font_rate = pygame.font.Font(os.path.join(Fpath, 'retro_game_font.ttf'), 
 # 가져온 font로 렌더링한다.
 rate_text = ingame_font_rate.render(str(rate), False, (255, 255, 255))
 
-
-
 # 노래파일 불러오기
-song_file = "sparkle.wav"
+song_file = "hype_boy.wav"
 pygame.mixer.music.load(song_file)
 
 # 노래에 대한 최상의 결과를 얻으려면 win_s값 수정.
@@ -123,8 +115,6 @@ def analyze_beats(song_file, win_s):
 
     return beats
 
-
-
 # 노트를 생성하는 함수를 만든다.
 def sum_note(n):
     if n == 1:
@@ -144,17 +134,14 @@ def sum_note(n):
         tst = Time + 2
         t4.append([ty, tst])
 
-# 노트의 속도를 조절하는 변수를 만든다.
+# 게임의 level을 조절하는 변수를 만든다.
 speed = 1
 level = 500
-
 
 # 비트를 설정한다.
 beats = analyze_beats(song_file, win_s)
 beat_index = 0
 start_time = pygame.time.get_ticks()
-
-
 
 # 화면에 문자를 띄우기 위한 변수를 만든다.
 combo = 0
@@ -190,10 +177,10 @@ def rating(n):
         combo_effect2 = 1.3
         rate = 'EXCELLENT'
 
-
-
 # 노래파일 플레이
 pygame.mixer.music.play()
+
+
 
 ##############################################################################################
 ##############################################################################################
@@ -202,8 +189,6 @@ while main:
     success, img = cam.read()
     image = cv2.flip(img, 1)
     results = hands.process(image) 
-
-
 
     if len(t1) > 0:
         rate_data[0] = t1[0][0]
@@ -214,16 +199,13 @@ while main:
     if len(t4) > 0:
         rate_data[3] = t4[0][0]
 
-
-
-        # Inside the while ingame loop:
+    # Inside the while ingame loop:
     current_time = time.time() - gst
 
     if beat_index < len(beats) and current_time * level > beats[beat_index]:
         rail = random.randint(1, 4)
         sum_note(rail)
         beat_index += 1
-
 
     Time = time.time() - gst
 
@@ -239,14 +221,9 @@ while main:
     ingame_font_miss = pygame.font.Font(os.path.join(Fpath, 'retro_game_font.ttf'), int((a2 * miss_anim)))
     miss_text = ingame_font_miss.render(str(last_combo), False, (255, 0, 0))
 
-
     fps = clock.get_fps()
     if fps == 0:
         fps = maxframe
-
-
-    # (width, height)로 mouse의 position을 딴다.
-    mouse_position = pygame.mouse.get_pos()
 
     # 이벤트 감지 코드를 작성한다.
     for event in pygame.event.get():
@@ -255,18 +232,15 @@ while main:
             # 창을 지운다.
             pygame.quit()
 
-    
-
 # gear========================================================================================
     # 화면을 그린다. 단색으로 채운다.
     screen.fill((0, 0, 0))
 
     # 움직임에 감속을 넣어주는 코드를 작성한다.
-    keys[0] += (keyset[0] - keys[0]) / (3 * (maxframe / fps))
-    keys[1] += (keyset[1] - keys[1]) / (3 * (maxframe / fps))
-    keys[2] += (keyset[2] - keys[2]) / (3 * (maxframe / fps))
-    keys[3] += (keyset[3] - keys[3]) / (3 * (maxframe / fps))
-
+    keys[0] += (keyset[0] - keys[0]) / (2 * (maxframe / fps))
+    keys[1] += (keyset[1] - keys[1]) / (2 * (maxframe / fps))
+    keys[2] += (keyset[2] - keys[2]) / (2 * (maxframe / fps))
+    keys[3] += (keyset[3] - keys[3]) / (2 * (maxframe / fps))
 
 # text=========================================================================================
     # 텍스트의 움직임을 결정한다.
@@ -279,14 +253,11 @@ while main:
 
     miss_anim += (4 - miss_anim) / (14 * (maxframe / fps))
 
-
-
-# gear==========================================================================================
+# effect===================================================================================
     # gear background
     pygame.draw.rect(screen, (0, 0, 0), (w*(1/2) - w*a3, -int(w/100), w*a4, h + int(w * (1 / 50))))
 
-# key 효과===================================================================================
-# key를 눌렀을 때 생기는 효과를 만든다.
+# key를 눌렀을 때 lane에 생기는 효과를 만든다.
     for i in range(7):
         i += 1
         pygame.draw.rect(screen, (200-((200*(1/7))*i), 200-((200*(1/7))*i), 200-((200*(1/7))*i)), (w*(1/2) - w*a3 + w/32 - a7 * keys[0], a1*9 - a8 * keys[0] * i, w*(2/10) * keys[0], a9 * (1 / i)))
@@ -300,10 +271,8 @@ while main:
         i += 1
         pygame.draw.rect(screen, (200-((200*(1/7))*i), 200-((200*(1/7))*i), 200-((200*(1/7))*i)), (w*(1/2) + w*(2/10) + w/32 - a7 * keys[3], a1*9 - a8 * keys[3] * i, w*(2/10) * keys[3], a9 * (1 / i)))
 
-
     # gear line
     pygame.draw.rect(screen, (255, 255, 255), (w*(1/2) - w*a3, -int(w * (1/100)), w*a4, h + int(w * (1/50))), int(w * (1/200)))
-
 
 # note=========================================================================================
     # 노트를 만든다.
@@ -314,8 +283,6 @@ while main:
         tile_data[0] = a1 * 9 + (Time - tile_data[1]) * speed * 350 * (a5)
         pygame.draw.rect(screen, (255, 255, 255), (w*(1/2) - w*a3, tile_data[0] - a12, w*(2/10), a10))
         # 놓친 노트는 없앤다.
-
-        # a1 * 9
 
         if tile_data[0] > h - (h / 9):
             # 미스 판정을 만든다. 놓치면 해당 노트를 삭제한다.
@@ -328,7 +295,6 @@ while main:
             rate = 'MISS'
             t1.remove(tile_data)
 
-    
     for tile_data in t2:
         tile_data[0] = a1 * 9 + (Time - tile_data[1]) * 350 * speed * (a5)
         pygame.draw.rect(screen, (255, 255, 255), (w*(1/2) - w*(2/10), tile_data[0] - a12, w*(2/10), a10))
@@ -368,13 +334,10 @@ while main:
             rate = 'MISS'
             t4.remove(tile_data)
 
-
 # blinder=============================================================================================
     # 판정선을 그린다.
     pygame.draw.rect(screen, (0, 0, 0), (w*(1/2) - w*a3, a1 * 9, w*a4, h * (1/2)))
     pygame.draw.rect(screen, (255, 255, 255), (w*(1/2) - w*a3, a1 * 9, w*a4, h * (1/2)), int(a12))
-
-
 
 # key==================================================================================================
 # 배경 화면을 꾸민다.
@@ -389,8 +352,6 @@ while main:
     
     pygame.draw.circle(screen, (255 - 100 * keys[3], 255 - 100 * keys[3], 255 - 100 * keys[3]), (w*(1/2) + w*(3/10), (a11) * 21 + a10 * keys[3]), (a13), int(a12))
     pygame.draw.circle(screen, (255 - 100 * keys[3], 255 - 100 * keys[3], 255 - 100 * keys[3]), (w*(1/2) + w*(3/10), (a11) * 21 + a10 * keys[3]), (a14))
-
-
             
     # font를 화면에 띄운다.
     miss_text.set_alpha(255 - (255 / 4) * miss_anim)
@@ -398,10 +359,7 @@ while main:
     screen.blit(rate_text, (w*(1/2) - rate_text.get_width() * (1/2), a1 * 8 - rate_text.get_height() * (1/2)))
     screen.blit(miss_text, (w*(1/2) - miss_text.get_width() * (1/2), a1 * 8 - miss_text.get_height() * (1/2)))
     
-
-        # mouse==============================================================================
-    # 손 위치를 표시한다.
-    # print('---------')
+    # hand detection과 hand tracking을 구현한다.
     grab_TF = [2, 2] # left, right
     if results.multi_hand_landmarks:
         for hand_landmarks in results.multi_hand_landmarks:
@@ -483,3 +441,4 @@ while main:
     clock.tick(maxframe)
 
 main = False
+cam.release()
