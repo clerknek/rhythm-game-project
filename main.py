@@ -3,7 +3,7 @@ import cv2
 import mediapipe as mp
 
 # 버전 정보
-__version__ = '1.3.0'
+__version__ = '1.3.1'
 
 # hand detection instance 생성
 mpHands = mp.solutions.hands
