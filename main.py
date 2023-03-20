@@ -57,7 +57,7 @@ keys = [0, 0, 0, 0]
 keyset = [0, 0, 0, 0]
 
 # frame을 구한다. 노트의 감속을 위해 필요하다.
-maxframe = 20
+maxframe = 60
 fps = 0
 
 # 노트 위치 계산을 위해 초시계를 만든다.
@@ -114,6 +114,15 @@ def analyze_beats(song_file, win_s):
             break
 
     return beats
+
+# 노트 생성의 다양성 추가 함수
+def generate_notes(level, num_rails=4, max_simultaneous_notes=2):
+    notes = []
+    for _ in range(level):
+        num_notes = random.randint(1, max_simultaneous_notes)
+        note_combination = random.sample(range(1, num_rails + 1), num_notes)
+        notes.append(note_combination)
+    return notes
 
 # 노트를 생성하는 함수를 만든다.
 def sum_note(n):
@@ -202,11 +211,14 @@ while main:
     # Inside the while ingame loop:
     current_time = time.time() - gst
 
-    if beat_index < len(beats) and current_time * level > beats[beat_index]:
-        rail = random.randint(1, 4)
-        sum_note(rail)
-        beat_index += 1
+    notes = generate_notes(level)
 
+    if beat_index < len(beats) and current_time * level > beats[beat_index]:
+        note_combination = notes[beat_index]
+        for rail in note_combination:
+            sum_note(rail)
+        beat_index += 1
+    
     Time = time.time() - gst
 
     # combo 글씨 생성
