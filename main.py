@@ -178,7 +178,7 @@ def simultaneous_notes():
     total_beat = len(beat_times)
 
     # 1부터 total_beat // 2까지의 정수 중 하나를 random하게 추출해 sample 수로 설정한다.
-    sample = random.randint(50, total_beat // 2)
+    sample = random.randint(total_beat // 4, total_beat // 2)
 
     sample_beat_times = random.sample(beat_times, sample)
 
