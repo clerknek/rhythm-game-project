@@ -49,13 +49,6 @@ cam = cv2.VideoCapture(0) # Window User.
 mpHands = mp.solutions.hands
 hands = mpHands.Hands(min_detection_confidence = 0.3)
 
-# 노래 file을 불러온다.
-song_file = "sparkle.wav"
-pygame.mixer.music.load(song_file)
-
-# 노래 file을 재생한다.
-pygame.mixer.music.play()
-
 # 변수를 정의한다.
 main = True
 
@@ -63,15 +56,19 @@ main = True
 maxframe = 60
 fps = 0
 
-# font ==========================================================================================
-# font 경로를 설정한다.
+# path ==========================================================================================
+# current 경로를 설정한다.
 Cpath = os.path.dirname(__file__)
-Fpath = os.path.join(Cpath, 'font_files')
-ingame_font_rate = pygame.font.Font(os.path.join(Fpath, 'retro_game_font.ttf'), int(a14))
+# font 경로를 설정한다.
+Fpath = os.path.join(Cpath, 'font')
+# music 경로를 설정한다.
+Mpath = os.path.join(Cpath, 'music')
+# ===============================================================================================
 
+# font ==========================================================================================
 # 시작할 때 게임 화면에 띄울 문자열을 생성한다.
+ingame_font_rate = pygame.font.Font(os.path.join(Fpath, 'retro_game_font.ttf'), int(a14))
 rate = 'START'
-
 # 가져온 font로 렌더링한다.
 rate_text = ingame_font_rate.render(str(rate), False, (255, 255, 255))
 # ===============================================================================================
@@ -102,12 +99,24 @@ miss_anim = 0
 last_combo = 0
 combo_time = Time + 1
 
+# song ==========================================================================================
+# 노래 file을 불러온다.
+song_file = os.path.join(Mpath, 'sparkle.wav')
+
 # beat를 생성한다.
-audio, _ = librosa.load('sparkle.wav')
+audio, _ = librosa.load(song_file)
 sampling_rate = 44100
 tempo, beats = librosa.beat.beat_track(y = audio, sr = sampling_rate)
+
 # beat가 찍혀야 하는 시간을 담고 있는 list를 생성한다.
 beat_times = librosa.frames_to_time(beats)
+
+# pygame에 노래 file을 불러온다.
+pygame.mixer.music.load(song_file)
+
+# 노래 file을 재생한다.
+pygame.mixer.music.play()
+# ===============================================================================================
 
 # note를 생성하는 함수를 정의한다.
 def sum_note():
