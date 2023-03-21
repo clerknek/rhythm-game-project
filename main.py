@@ -1,8 +1,8 @@
-import pygame, cv2, time, os, random, librosa
+import pygame, cv2, time, os, random, librosa, sys
 import mediapipe as mp
 
 # 버전 정보
-__version__ = '1.3.3'
+__version__ = '1.4.0'
 
 # pygame moduel을 import하고 초기화한다.
 pygame.init()
@@ -26,7 +26,9 @@ a11 = h / 24
 a12 = h / 100
 a13 = w / 20
 a14 = w / 30
-a15 = h / (1.5)
+a15 = h / 1.5
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
 
 # lane 좌표를 설정한다.
 width1 = w*(1/2) - w*a3
@@ -98,7 +100,7 @@ combo_time = Time + 1
 
 # song ==========================================================================================
 # 노래 file을 불러온다.
-song_file = os.path.join(Mpath, 'hype_boy.wav')
+song_file = os.path.join(Mpath, 'summer.wav')
 
 # beat를 생성한다.
 audio, _ = librosa.load(song_file)
@@ -108,12 +110,11 @@ tempo, beats = librosa.beat.beat_track(y = audio, sr = sampling_rate)
 # beat가 찍혀야 하는 시간을 담고 있는 list를 생성한다.
 beat_times = librosa.frames_to_time(beats)
 beat_times = list(beat_times)
+beat_times = beat_times[7:]
 
 # pygame에 노래 file을 불러온다.
 pygame.mixer.music.load(song_file)
 
-# 노래 file을 재생한다.
-pygame.mixer.music.play()
 # ===============================================================================================
 
 # function ======================================================================================
@@ -268,261 +269,330 @@ def rating(n):
 generate_note()
 simultaneous_notes()
 
-
-
 ##############################################################################################
 ##############################################################################################
 ##############################################################################################
 
-while main:
-    success, img = cam.read()
-    image = cv2.flip(img, 1)
-    results = hands.process(image) 
+# 게임을 실행하는 함수를 정의한다.
+def main_game():
+    # 비트 인덱스 초기화 필요    
+    global combo, miss_anim, last_combo, combo_effect, combo_effect2, combo_time, rate, speed, gst, t1, t2, t3, t4
 
-    if len(t1) > 0:
-        rate_data[0] = t1[0][0]
-    if len(t2) > 0:
-        rate_data[1] = t2[0][0]
-    if len(t3) > 0:
-        rate_data[2] = t3[0][0]
-    if len(t4) > 0:
-        rate_data[3] = t4[0][0]
+    # 게임 일시정지 함수를 정의한다.
+    def pause_game():
+        pygame.mixer.music.pause()
+        paused = True
+        while paused:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
 
-    # 게임이 시작되고 나서부터의 시간을 측정한다.
-    Time = time.time() - gst
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_p:
+                        paused = False
+                        pygame.mixer.music.unpause()
+                        
+            # 일시 중지된 동안 100% CPU를 사용하지 않도록 지연 추가.           
+            pygame.time.delay(10)
+            pygame.display.flip()
 
-    # combo 글씨 생성
-    ingame_font_combo = pygame.font.Font(os.path.join(Fpath, 'retro_game_font.ttf'), int((a2) * combo_effect2))
-    combo_text = ingame_font_combo.render(str(combo), False, (255, 255, 255))
+    # 노래 file을 재생한다.
+    pygame.mixer.music.play()
 
-    # 점수 글씨 생성
-    rate_text = ingame_font_rate.render(str(rate), False, (255, 255, 255))
-    rate_text = pygame.transform.scale(rate_text, (int(w / 110 * len(rate) * combo_effect2), int((w * (1 / 60) * combo_effect * combo_effect2))))
+    # 게임을 실행한다.
+    main = True
+    while main:
+        success, img = cam.read()
+        image = cv2.flip(img, 1)
+        results = hands.process(image) 
 
-    # miss 글씨 생성
-    ingame_font_miss = pygame.font.Font(os.path.join(Fpath, 'retro_game_font.ttf'), int((a2 * miss_anim)))
-    miss_text = ingame_font_miss.render(str(last_combo), False, (255, 0, 0))
+        if len(t1) > 0:
+            rate_data[0] = t1[0][0]
+        if len(t2) > 0:
+            rate_data[1] = t2[0][0]
+        if len(t3) > 0:
+            rate_data[2] = t3[0][0]
+        if len(t4) > 0:
+            rate_data[3] = t4[0][0]
 
-    fps = clock.get_fps()
-    if fps == 0:
-        fps = maxframe
+        # 게임이 시작되고 나서부터의 시간을 측정한다.
+        Time = time.time() - gst
 
-    # 이벤트 감지 코드를 작성한다.
-    for event in pygame.event.get():
-        # 창을 나가는 동작을 감지한다.
-        if event.type == pygame.QUIT:
-            # 창을 지운다.
-            pygame.quit()
+        # combo 글씨 생성
+        ingame_font_combo = pygame.font.Font(os.path.join(Fpath, 'retro_game_font.ttf'), int((a2) * combo_effect2))
+        combo_text = ingame_font_combo.render(str(combo), False, (255, 255, 255))
 
-# gear ========================================================================================
-    # 화면을 그린다. 단색으로 채운다.
-    screen.fill((0, 0, 0))
+        # 점수 글씨 생성
+        rate_text = ingame_font_rate.render(str(rate), False, (255, 255, 255))
+        rate_text = pygame.transform.scale(rate_text, (int(w / 110 * len(rate) * combo_effect2), int((w * (1 / 60) * combo_effect * combo_effect2))))
 
-    # effect가 생기는 정도를 결정한다. effect가 생기고 사라지는 속도를 조절하고 싶으면 1을 바꾼다.
-    # 숫자를 크게 하면 effect가 천천히 생기고 천천히 사라진다.
-    lanes[0] += (laneset[0] - lanes[0]) / (1 * (maxframe / fps))
-    lanes[1] += (laneset[1] - lanes[1]) / (1 * (maxframe / fps))
-    lanes[2] += (laneset[2] - lanes[2]) / (1 * (maxframe / fps))
-    lanes[3] += (laneset[3] - lanes[3]) / (1 * (maxframe / fps))
+        # miss 글씨 생성
+        ingame_font_miss = pygame.font.Font(os.path.join(Fpath, 'retro_game_font.ttf'), int((a2 * miss_anim)))
+        miss_text = ingame_font_miss.render(str(last_combo), False, (255, 0, 0))
 
-# effect =======================================================================================
-    # effect의 움직임을 결정한다.
-    if Time > combo_time:
-        combo_effect += (0 - combo_effect) / (1 * (maxframe / fps))
-    if Time < combo_time:
-        combo_effect += (1 - combo_effect) / (1 * (maxframe / fps))
-    
-    combo_effect2 += (2 - combo_effect2) / (1 * (maxframe / fps))
+        fps = clock.get_fps()
+        if fps == 0:
+            fps = maxframe
 
-    miss_anim += (4 - miss_anim) / (14 * (maxframe / fps))
+        # 이벤트 감지 코드를 작성한다.
+        for event in pygame.event.get():
+            # 창을 나가는 동작을 감지한다.
+            if event.type == pygame.QUIT:
+                # 창을 지운다.
+                main = False
+                pygame.quit()
+                sys.exit()
 
-# effect ===================================================================================
-    # gear background
-    pygame.draw.rect(screen, (0, 0, 0), (w*(1/2) - w*a3, -int(w/100), w*a4, h + int(w * (1 / 50))))
+            # 창을 일시정지한다.
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_p:
+                    pause_game()
 
-    # lane를 눌렀을 때 lane에 생기는 effect를 만든다.
-    for i in range(7):
-        i += 1
-        pygame.draw.rect(screen, (200-((200*(1/7))*i), 200-((200*(1/7))*i), 200-((200*(1/7))*i)), (w*(1/2) - w*a3 + w/32 - a7 * lanes[0], a1*9 - a8 * lanes[0] * i, w*(2/10) * lanes[0], a9 * (1 / i)))
-    for i in range(7):
-        i += 1
-        pygame.draw.rect(screen, (200-((200*(1/7))*i), 200-((200*(1/7))*i), 200-((200*(1/7))*i)), (w*(1/2) - w*(2/10) + w/32 - a7 * lanes[1], a1*9 - a8 * lanes[1] * i, w*(2/10) * lanes[1], a9 * (1 / i)))
-    for i in range(7):
-        i += 1
-        pygame.draw.rect(screen, (200-((200*(1/7))*i), 200-((200*(1/7))*i), 200-((200*(1/7))*i)), (w*(1/2)            + w/32 - a7 * lanes[2], a1*9 - a8 * lanes[2] * i, w*(2/10) * lanes[2], a9 * (1 / i)))
-    for i in range(7):
-        i += 1
-        pygame.draw.rect(screen, (200-((200*(1/7))*i), 200-((200*(1/7))*i), 200-((200*(1/7))*i)), (w*(1/2) + w*(2/10) + w/32 - a7 * lanes[3], a1*9 - a8 * lanes[3] * i, w*(2/10) * lanes[3], a9 * (1 / i)))
+    # gear ========================================================================================
+        # 화면을 그린다. 단색으로 채운다.
+        screen.fill((0, 0, 0))
 
-    # gear line
-    pygame.draw.rect(screen, (255, 255, 255), (w*(1/2) - w*a3, -int(w * (1/100)), w*a4, h + int(w * (1/50))), int(w * (1/200)))
+        # effect가 생기는 정도를 결정한다. effect가 생기고 사라지는 속도를 조절하고 싶으면 1을 바꾼다.
+        # 숫자를 크게 하면 effect가 천천히 생기고 천천히 사라진다.
+        lanes[0] += (laneset[0] - lanes[0]) / (1 * (maxframe / fps))
+        lanes[1] += (laneset[1] - lanes[1]) / (1 * (maxframe / fps))
+        lanes[2] += (laneset[2] - lanes[2]) / (1 * (maxframe / fps))
+        lanes[3] += (laneset[3] - lanes[3]) / (1 * (maxframe / fps))
 
-# note =========================================================================================
-    # note를 만든다.
-    for tile_data in t1:
-        # 렉이 걸려도 노트는 일정한 속도로 내려오도록 하는 코드를 작성한다.
-        # 판정선 위치 기준             현재 시간 - 노트 소환 시간
-        #                             시간이 경과할수록 이 부분의 차가 커져 노트가 내려간다.
-        tile_data[0] = a1 * 9 + (Time - tile_data[1]) * speed * 350 * (a5)
-        pygame.draw.rect(screen, (255, 255, 255), (w*(1/2) - w*a3, tile_data[0] - a12, w*(2/10), a10))
-        # 놓친 노트는 없앤다.
+    # effect =======================================================================================
+        # effect의 움직임을 결정한다.
+        if Time > combo_time:
+            combo_effect += (0 - combo_effect) / (1 * (maxframe / fps))
+        if Time < combo_time:
+            combo_effect += (1 - combo_effect) / (1 * (maxframe / fps))
+        
+        combo_effect2 += (2 - combo_effect2) / (1 * (maxframe / fps))
 
-        if tile_data[0] > h - (h / 9):
-            # 미스 판정을 만든다. 놓치면 해당 노트를 삭제한다.
-            last_combo = combo
-            miss_anim = 1
-            combo = 0
-            combo_effect = 0.2
-            combo_time = Time + 1
-            combo_effect2 = 1.3
-            rate = 'MISS'
-            t1.remove(tile_data)
+        miss_anim += (4 - miss_anim) / (14 * (maxframe / fps))
 
-    for tile_data in t2:
-        tile_data[0] = a1 * 9 + (Time - tile_data[1]) * 350 * speed * (a5)
-        pygame.draw.rect(screen, (255, 255, 255), (w*(1/2) - w*(2/10), tile_data[0] - a12, w*(2/10), a10))
-        if tile_data[0] > h - (h / 9):
-            last_combo = combo
-            miss_anim = 1
-            combo = 0
-            combo_effect = 0.2
-            combo_time = Time + 1
-            combo_effect2 = 1.3
-            rate = 'MISS'
-            t2.remove(tile_data)
-    
-    for tile_data in t3:
-        tile_data[0] = a1 * 9 + (Time - tile_data[1]) * 350 * speed * (a5)
-        pygame.draw.rect(screen, (255, 255, 255), (w*(1/2), tile_data[0] - a12, w*(2/10), a10))
-        if tile_data[0] > h - (h / 9):
-            last_combo = combo
-            miss_anim = 1
-            combo = 0
-            combo_effect = 0.2
-            combo_time = Time + 1
-            combo_effect2 = 1.3
-            rate = 'MISS'
-            t3.remove(tile_data)
-    
-    for tile_data in t4:
-        tile_data[0] = a1 * 9 + (Time - tile_data[1]) * 350 * speed * (a5)
-        pygame.draw.rect(screen, (255, 255, 255), (w*(1/2) + w*(2/10), tile_data[0] - a12, w*(2/10), a10))
-        if tile_data[0] > h - (h / 9):
-            last_combo = combo
-            miss_anim = 1
-            combo = 0
-            combo_effect = 0.2
-            combo_time = Time + 1
-            combo_effect2 = 1.3
-            rate = 'MISS'
-            t4.remove(tile_data)
+    # effect ===================================================================================
+        # gear background
+        pygame.draw.rect(screen, (0, 0, 0), (w*(1/2) - w*a3, -int(w/100), w*a4, h + int(w * (1 / 50))))
 
-# blinder =============================================================================================
-    # 판정선을 그린다.
-    pygame.draw.rect(screen, (0, 0, 0), (w*(1/2) - w*a3, a1 * 9, w*a4, h * (1/2)))
-    pygame.draw.rect(screen, (255, 255, 255), (w*(1/2) - w*a3, a1 * 9, w*a4, h * (1/2)), int(a12))
+        # lane를 눌렀을 때 lane에 생기는 effect를 만든다.
+        for i in range(7):
+            i += 1
+            pygame.draw.rect(screen, (200-((200*(1/7))*i), 200-((200*(1/7))*i), 200-((200*(1/7))*i)), (w*(1/2) - w*a3 + w/32 - a7 * lanes[0], a1*9 - a8 * lanes[0] * i, w*(2/10) * lanes[0], a9 * (1 / i)))
+        for i in range(7):
+            i += 1
+            pygame.draw.rect(screen, (200-((200*(1/7))*i), 200-((200*(1/7))*i), 200-((200*(1/7))*i)), (w*(1/2) - w*(2/10) + w/32 - a7 * lanes[1], a1*9 - a8 * lanes[1] * i, w*(2/10) * lanes[1], a9 * (1 / i)))
+        for i in range(7):
+            i += 1
+            pygame.draw.rect(screen, (200-((200*(1/7))*i), 200-((200*(1/7))*i), 200-((200*(1/7))*i)), (w*(1/2)            + w/32 - a7 * lanes[2], a1*9 - a8 * lanes[2] * i, w*(2/10) * lanes[2], a9 * (1 / i)))
+        for i in range(7):
+            i += 1
+            pygame.draw.rect(screen, (200-((200*(1/7))*i), 200-((200*(1/7))*i), 200-((200*(1/7))*i)), (w*(1/2) + w*(2/10) + w/32 - a7 * lanes[3], a1*9 - a8 * lanes[3] * i, w*(2/10) * lanes[3], a9 * (1 / i)))
 
-# background ==========================================================================================
-    # 배경 화면에 생성될 버튼을 만든다.
-    pygame.draw.circle(screen, (255 - 100 * lanes[0], 255 - 100 * lanes[0], 255 - 100 * lanes[0]), (w*(1/2) - w*(3/10), (a11) * 21 + a10 * lanes[0]), (a13), int(a12))
-    pygame.draw.circle(screen, (255 - 100 * lanes[0], 255 - 100 * lanes[0], 255 - 100 * lanes[0]), (w*(1/2) - w*(3/10), (a11) * 21 + a10 * lanes[0]), (a14))
-    
-    pygame.draw.circle(screen, (255 - 100 * lanes[1], 255 - 100 * lanes[1], 255 - 100 * lanes[1]), (w*(1/2) - w*(1/10), (a11) * 21 + a10 * lanes[1]), (a13), int(a12))
-    pygame.draw.circle(screen, (255 - 100 * lanes[1], 255 - 100 * lanes[1], 255 - 100 * lanes[1]), (w*(1/2) - w*(1/10), (a11) * 21 + a10 * lanes[1]), (a14))
-    
-    pygame.draw.circle(screen, (255 - 100 * lanes[2], 255 - 100 * lanes[2], 255 - 100 * lanes[2]), (w*(1/2) + w*(1/10), (a11) * 21 + a10 * lanes[2]), (a13), int(a12))
-    pygame.draw.circle(screen, (255 - 100 * lanes[2], 255 - 100 * lanes[2], 255 - 100 * lanes[2]), (w*(1/2) + w*(1/10), (a11) * 21 + a10 * lanes[2]), (a14))
-    
-    pygame.draw.circle(screen, (255 - 100 * lanes[3], 255 - 100 * lanes[3], 255 - 100 * lanes[3]), (w*(1/2) + w*(3/10), (a11) * 21 + a10 * lanes[3]), (a13), int(a12))
-    pygame.draw.circle(screen, (255 - 100 * lanes[3], 255 - 100 * lanes[3], 255 - 100 * lanes[3]), (w*(1/2) + w*(3/10), (a11) * 21 + a10 * lanes[3]), (a14))
-            
-    # font를 화면에 띄운다.
-    miss_text.set_alpha(255 - (255 / 4) * miss_anim)
-    screen.blit(combo_text, (w*(1/2) - combo_text.get_width() * (1/2), a1 * 4 - combo_text.get_height() * (1/2)))
-    screen.blit(rate_text, (w*(1/2) - rate_text.get_width() * (1/2), a1 * 8 - rate_text.get_height() * (1/2)))
-    screen.blit(miss_text, (w*(1/2) - miss_text.get_width() * (1/2), a1 * 8 - miss_text.get_height() * (1/2)))
+        # gear line
+        pygame.draw.rect(screen, (255, 255, 255), (w*(1/2) - w*a3, -int(w * (1/100)), w*a4, h + int(w * (1/50))), int(w * (1/200)))
 
-# hand dtection =======================================================================================
-    # hand detection과 hand tracking을 구현한다.
-    grab_TF = [2, 2] # left, right
-    if results.multi_hand_landmarks:
-        for hand_landmarks in results.multi_hand_landmarks:
-            palm_x, palm_y = hand_landmarks.landmark[9].x*w, hand_landmarks.landmark[9].y*h
-            finger_x, finger_y = hand_landmarks.landmark[12].x*w, hand_landmarks.landmark[12].y*h
+    # note =========================================================================================
+        # note를 만든다.
+        for tile_data in t1:
+            # 렉이 걸려도 노트는 일정한 속도로 내려오도록 하는 코드를 작성한다.
+            # 판정선 위치 기준             현재 시간 - 노트 소환 시간
+            #                             시간이 경과할수록 이 부분의 차가 커져 노트가 내려간다.
+            tile_data[0] = a1 * 9 + (Time - tile_data[1]) * speed * 350 * (a5)
+            pygame.draw.rect(screen, (255, 255, 255), (w*(1/2) - w*a3, tile_data[0] - a12, w*(2/10), a10))
+            # 놓친 노트는 없앤다.
 
-            if grab_TF[0] == 2:
-                if finger_y > palm_y:
-                    grab_TF[0] = True
-                    if width1 <= palm_x and palm_x <= width2:
-                        laneset[0] = 1
-                    if width2 <= palm_x and palm_x <= width3:
-                        laneset[1] = 1
-                    if width3 <= palm_x and palm_x <= width4:
-                        laneset[2] = 1
-                    if width4 <= palm_x and palm_x <= width5:
-                        laneset[3] = 1
+            if tile_data[0] > h - (h / 9):
+                # 미스 판정을 만든다. 놓치면 해당 노트를 삭제한다.
+                last_combo = combo
+                miss_anim = 1
+                combo = 0
+                combo_effect = 0.2
+                combo_time = Time + 1
+                combo_effect2 = 1.3
+                rate = 'MISS'
+                t1.remove(tile_data)
+
+        for tile_data in t2:
+            tile_data[0] = a1 * 9 + (Time - tile_data[1]) * 350 * speed * (a5)
+            pygame.draw.rect(screen, (255, 255, 255), (w*(1/2) - w*(2/10), tile_data[0] - a12, w*(2/10), a10))
+            if tile_data[0] > h - (h / 9):
+                last_combo = combo
+                miss_anim = 1
+                combo = 0
+                combo_effect = 0.2
+                combo_time = Time + 1
+                combo_effect2 = 1.3
+                rate = 'MISS'
+                t2.remove(tile_data)
+        
+        for tile_data in t3:
+            tile_data[0] = a1 * 9 + (Time - tile_data[1]) * 350 * speed * (a5)
+            pygame.draw.rect(screen, (255, 255, 255), (w*(1/2), tile_data[0] - a12, w*(2/10), a10))
+            if tile_data[0] > h - (h / 9):
+                last_combo = combo
+                miss_anim = 1
+                combo = 0
+                combo_effect = 0.2
+                combo_time = Time + 1
+                combo_effect2 = 1.3
+                rate = 'MISS'
+                t3.remove(tile_data)
+        
+        for tile_data in t4:
+            tile_data[0] = a1 * 9 + (Time - tile_data[1]) * 350 * speed * (a5)
+            pygame.draw.rect(screen, (255, 255, 255), (w*(1/2) + w*(2/10), tile_data[0] - a12, w*(2/10), a10))
+            if tile_data[0] > h - (h / 9):
+                last_combo = combo
+                miss_anim = 1
+                combo = 0
+                combo_effect = 0.2
+                combo_time = Time + 1
+                combo_effect2 = 1.3
+                rate = 'MISS'
+                t4.remove(tile_data)
+
+    # blinder =============================================================================================
+        # 판정선을 그린다.
+        pygame.draw.rect(screen, (0, 0, 0), (w*(1/2) - w*a3, a1 * 9, w*a4, h * (1/2)))
+        pygame.draw.rect(screen, (255, 255, 255), (w*(1/2) - w*a3, a1 * 9, w*a4, h * (1/2)), int(a12))
+
+    # background ==========================================================================================
+        # 배경 화면에 생성될 버튼을 만든다.
+        pygame.draw.circle(screen, (255 - 100 * lanes[0], 255 - 100 * lanes[0], 255 - 100 * lanes[0]), (w*(1/2) - w*(3/10), (a11) * 21 + a10 * lanes[0]), (a13), int(a12))
+        pygame.draw.circle(screen, (255 - 100 * lanes[0], 255 - 100 * lanes[0], 255 - 100 * lanes[0]), (w*(1/2) - w*(3/10), (a11) * 21 + a10 * lanes[0]), (a14))
+        
+        pygame.draw.circle(screen, (255 - 100 * lanes[1], 255 - 100 * lanes[1], 255 - 100 * lanes[1]), (w*(1/2) - w*(1/10), (a11) * 21 + a10 * lanes[1]), (a13), int(a12))
+        pygame.draw.circle(screen, (255 - 100 * lanes[1], 255 - 100 * lanes[1], 255 - 100 * lanes[1]), (w*(1/2) - w*(1/10), (a11) * 21 + a10 * lanes[1]), (a14))
+        
+        pygame.draw.circle(screen, (255 - 100 * lanes[2], 255 - 100 * lanes[2], 255 - 100 * lanes[2]), (w*(1/2) + w*(1/10), (a11) * 21 + a10 * lanes[2]), (a13), int(a12))
+        pygame.draw.circle(screen, (255 - 100 * lanes[2], 255 - 100 * lanes[2], 255 - 100 * lanes[2]), (w*(1/2) + w*(1/10), (a11) * 21 + a10 * lanes[2]), (a14))
+        
+        pygame.draw.circle(screen, (255 - 100 * lanes[3], 255 - 100 * lanes[3], 255 - 100 * lanes[3]), (w*(1/2) + w*(3/10), (a11) * 21 + a10 * lanes[3]), (a13), int(a12))
+        pygame.draw.circle(screen, (255 - 100 * lanes[3], 255 - 100 * lanes[3], 255 - 100 * lanes[3]), (w*(1/2) + w*(3/10), (a11) * 21 + a10 * lanes[3]), (a14))
+                
+        # font를 화면에 띄운다.
+        miss_text.set_alpha(255 - (255 / 4) * miss_anim)
+        screen.blit(combo_text, (w*(1/2) - combo_text.get_width() * (1/2), a1 * 4 - combo_text.get_height() * (1/2)))
+        screen.blit(rate_text, (w*(1/2) - rate_text.get_width() * (1/2), a1 * 8 - rate_text.get_height() * (1/2)))
+        screen.blit(miss_text, (w*(1/2) - miss_text.get_width() * (1/2), a1 * 8 - miss_text.get_height() * (1/2)))
+
+    # hand dtection =======================================================================================
+        # hand detection과 hand tracking을 구현한다.
+        grab_TF = [2, 2] # left, right
+        if results.multi_hand_landmarks:
+            for hand_landmarks in results.multi_hand_landmarks:
+                palm_x, palm_y = hand_landmarks.landmark[9].x*w, hand_landmarks.landmark[9].y*h
+                finger_x, finger_y = hand_landmarks.landmark[12].x*w, hand_landmarks.landmark[12].y*h
+
+                if grab_TF[0] == 2:
+                    if finger_y > palm_y:
+                        grab_TF[0] = True
+                        if width1 <= palm_x and palm_x <= width2:
+                            laneset[0] = 1
+                        if width2 <= palm_x and palm_x <= width3:
+                            laneset[1] = 1
+                        if width3 <= palm_x and palm_x <= width4:
+                            laneset[2] = 1
+                        if width4 <= palm_x and palm_x <= width5:
+                            laneset[3] = 1
+                    else:
+                        grab_TF[0] = False
+                elif grab_TF[1] == 2:
+                    if finger_y > palm_y:
+                        grab_TF[1] = True
+                        if width1 <= palm_x and palm_x <= width2:
+                            laneset[0] = 1
+                        if width2 <= palm_x and palm_x <= width3:
+                            laneset[1] = 1
+                        if width3 <= palm_x and palm_x <= width4:
+                            laneset[2] = 1
+                        if width4 <= palm_x and palm_x <= width5:
+                            laneset[3] = 1
+                    else:
+                        grab_TF[1] = False
+
+                pygame.draw.circle(screen, (0, 255, 0), (int(palm_x), int(palm_y)), 15)
+                if grab_TF[0] == True or grab_TF[1] == True:
+                    # 손을 쥐었을 때 손 위치를 나타내는 원의 색을 변경한다.
+
+                    # lane 1
+                    if laneset[0] == 1:
+                        if len(t1) > 0:
+                            if t1[0][0] > a15:
+                                rating(1)
+                                del t1[0]
+                    
+                    # lane 2
+                    if laneset[1] == 1:
+                        if len(t2) > 0:
+                            if t2[0][0] > a15:
+                                rating(2)
+                                del t2[0]
+                    
+                    # lane 3
+                    if laneset[2] == 1:
+                        if len(t3) > 0:
+                            if t3[0][0] > a15:
+                                rating(3)
+                                del t3[0]
+                    
+                    # lane 4
+                    if laneset[3] == 1:
+                        if len(t4) > 0:
+                            if t4[0][0] > a15:
+                                rating(4)
+                                del t4[0]
                 else:
-                    grab_TF[0] = False
-            elif grab_TF[1] == 2:
-                if finger_y > palm_y:
-                    grab_TF[1] = True
-                    if width1 <= palm_x and palm_x <= width2:
-                        laneset[0] = 1
-                    if width2 <= palm_x and palm_x <= width3:
-                        laneset[1] = 1
-                    if width3 <= palm_x and palm_x <= width4:
-                        laneset[2] = 1
-                    if width4 <= palm_x and palm_x <= width5:
-                        laneset[3] = 1
-                else:
-                    grab_TF[1] = False
+                    laneset[0], laneset[1], laneset[2], laneset[3] = 0, 0, 0, 0
+        else:
+            laneset[0], laneset[1], laneset[2], laneset[3] = 0, 0, 0, 0
 
-            pygame.draw.circle(screen, (0, 255, 0), (int(palm_x), int(palm_y)), 10)
-            if grab_TF[0] == True or grab_TF[1] == True:
-                # 손을 쥐었을 때 손 위치를 나타내는 원의 색을 변경한다.
-                hand_status = "grab"
-                pygame.draw.circle(screen, (0, 255, 255), (int(palm_x), int(palm_y)), 10)
+    # background ==================================================================================
+        # 화면을 업데이트하는 함수를 정의한다. 이 코드가 없으면 화면이 보이지 않는다.
+        pygame.display.flip()
 
-                # lane 1
-                if laneset[0] == 1:
-                    if len(t1) > 0:
-                        if t1[0][0] > a15:
-                            rating(1)
-                            del t1[0]
+        # frame 제한 코드
+        clock.tick(maxframe)
+
+    cam.release()
+# ===============================================================================================
+# 시작 화면 함수를 정의한다.
+def start_screen():
+
+    start_box = pygame.Rect(w // 2 - 130, h // 2 - 80, 265, 50)
+    box_txt = ingame_font_rate.render('START GAME', True, WHITE)
+    info_text = ingame_font_rate.render("CLICK THE BUTTON TO START", True, WHITE)
+    
+    running = True
+    while running:
+        success, img = cam.read()
+        image = cv2.flip(img, 1)
+        results = hands.process(image)
+        screen.fill(BLACK)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+                pygame.quit()
+                sys.exit()
                 
-                # lane 2
-                if laneset[1] == 1:
-                    if len(t2) > 0:
-                        if t2[0][0] > a15:
-                            rating(2)
-                            del t2[0]
-                
-                # lane 3
-                if laneset[2] == 1:
-                    if len(t3) > 0:
-                        if t3[0][0] > a15:
-                            rating(3)
-                            del t3[0]
-                
-                # lane 4
-                if laneset[3] == 1:
-                    if len(t4) > 0:
-                        if t4[0][0] > a15:
-                            rating(4)
-                            del t4[0]
-            else:
-                hand_status = 'normal'
-                laneset[0], laneset[1], laneset[2], laneset[3] = 0, 0, 0, 0
-    else:
-        hand_status = 'normal'
-        laneset[0], laneset[1], laneset[2], laneset[3] = 0, 0, 0, 0
+        pygame.draw.rect(screen, WHITE, start_box, 2)
+        screen.blit(box_txt, (start_box.x + 10, start_box.y +5))
+        screen.blit(info_text, (205, 400))
 
-# background ==================================================================================
-    # 화면을 업데이트하는 함수를 정의한다. 이 코드가 없으면 화면이 보이지 않는다.
-    pygame.display.flip()
+        if results.multi_hand_landmarks:
+            for hand_landmarks in results.multi_hand_landmarks:
+                x, y = hand_landmarks.landmark[9].x*w, hand_landmarks.landmark[9].y*h
+                x1, y1 = hand_landmarks.landmark[12].x*w, hand_landmarks.landmark[12].y*h
 
-    # frame 제한 코드
-    clock.tick(maxframe)
-
-main = False
-cam.release()
+                pygame.draw.circle(screen, (0, 255, 0), (int(x), int(y)), 15)
+                if y1 > y:
+                    if start_box.collidepoint(int(x), int(y)):
+                        main_game()
+                         
+        pygame.display.flip()
+    cam.release()
+# ===============================================================================================
+# 시작 화면을 실행한다.
+start_screen()
