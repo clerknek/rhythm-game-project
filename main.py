@@ -2,7 +2,7 @@ import pygame, cv2, time, os, random, librosa
 import mediapipe as mp
 
 # 버전 정보
-__version__ = '1.3.2'
+__version__ = '1.3.3'
 
 # pygame moduel을 import하고 초기화한다.
 pygame.init()
@@ -82,10 +82,7 @@ Time = time.time() - gst
 
 # lane이 4개이므로 note와 관련되 정보를 담을 list 4개를 생성한다.
 # [ty, tst]가 하나의 element로 들어간다.
-t1 = []
-t2 = []
-t3 = []
-t4 = []
+t1, t2, t3, t4 = [], [], [], []
 
 # 키 누름을 감지하는 list를 정의한다.
 lanes = [0, 0, 0, 0]
@@ -101,7 +98,7 @@ combo_time = Time + 1
 
 # song ==========================================================================================
 # 노래 file을 불러온다.
-song_file = os.path.join(Mpath, 'sparkle.wav')
+song_file = os.path.join(Mpath, 'hype_boy.wav')
 
 # beat를 생성한다.
 audio, _ = librosa.load(song_file)
@@ -110,6 +107,7 @@ tempo, beats = librosa.beat.beat_track(y = audio, sr = sampling_rate)
 
 # beat가 찍혀야 하는 시간을 담고 있는 list를 생성한다.
 beat_times = librosa.frames_to_time(beats)
+beat_times = list(beat_times)
 
 # pygame에 노래 file을 불러온다.
 pygame.mixer.music.load(song_file)
@@ -118,22 +116,28 @@ pygame.mixer.music.load(song_file)
 pygame.mixer.music.play()
 # ===============================================================================================
 
+# function ======================================================================================
 # note를 생성하는 함수를 정의한다.
-def sum_note():
+def generate_note():
     '''
-    각 lane에 생성되는 note를 생성하는 함수이다. ty는 note의 위치이고 tst는 note가 생성되어야 하는 시간이다.
+    각 lane에 생성되는 note를 생성하는 함수이다. note의 정보를 [ty, tst]로 입력한다.
+        - ty는 note의 위치이고 tst는 note가 생성되어야 하는 시간이다.
     [parameter]
         None
     [return]
         None
     '''
-    global ty, tst, beat_times, t1, t2, t3, t4
+    global beat_times, t1, t2, t3, t4
 
     idx = 0
     while True:
+        # idx가 beat_times의 끝에 도달하면 종료한다.
         if idx == len(beat_times):
                 break
+        
+        # note를 생성할 lane을 random하게 추출한다.
         lane = random.randint(1, 4)
+
         if lane == 1:
             ty = 0
             tst = beat_times[idx]
@@ -158,6 +162,73 @@ def sum_note():
             t4.append([ty, tst])
             idx += 1
             continue
+    
+# note가 한 번에 여러 개 떨어지도록 하는 함수를 정의한다.
+def simultaneous_notes():
+    '''
+    note가 한 번에 여러 개 떨어지도록 만드는 함수이다. 한 번에 떨어지는 note 개수의 기본값은 2이다.
+    [parameter]
+        None
+    [return]
+        None
+    '''
+    global beat_times, t1, t2, t3, t4
+
+    # 전체 beat의 수를 정의한다.
+    total_beat = len(beat_times)
+
+    # 1부터 total_beat // 2까지의 정수 중 하나를 random하게 추출해 sample 수로 설정한다.
+    sample = random.randint(50, total_beat // 2)
+
+    sample_beat_times = random.sample(beat_times, sample)
+
+    idx = 0
+    while True:
+        if idx == len(sample_beat_times):
+            break
+
+        lane = random.randint(1, 4)
+
+        if lane == 1:
+            ty = 0
+            tst = sample_beat_times[idx]
+            t1.append([ty, tst])
+            idx += 1
+            continue
+        elif lane == 2:
+            ty = 0
+            tst = sample_beat_times[idx]
+            t2.append([ty, tst])
+            idx += 1
+            continue
+        elif lane == 3:
+            ty = 0
+            tst = sample_beat_times[idx]
+            t3.append([ty, tst])
+            idx += 1
+            continue
+        elif lane == 4:
+            ty = 0
+            tst = sample_beat_times[idx]
+            t4.append([ty, tst])
+            idx += 1
+            continue
+    t1 = list(set([tuple(item) for item in t1]))
+    t1 = list(list(item) for item in t1)
+
+    t2 = list(set([tuple(item) for item in t2]))
+    t2 = list(list(item) for item in t2)
+
+    t3 = list(set([tuple(item) for item in t3]))
+    t3 = list(list(item) for item in t3)
+
+    t4 = list(set([tuple(item) for item in t4]))
+    t4 = list(list(item) for item in t4)
+
+    t1.sort()
+    t2.sort()
+    t3.sort()
+    t4.sort()
 
 # 점수를 판정하는 함수를 만든다.
 rate_data = [0, 0, 0, 0]
@@ -191,9 +262,12 @@ def rating(n):
         combo_time = Time + 1
         combo_effect2 = 1.3
         rate = 'EXCELLENT'
+# ===============================================================================================
 
 # 각 lane에 note를 생성한다.
-sum_note()
+generate_note()
+simultaneous_notes()
+
 
 
 ##############################################################################################
@@ -244,14 +318,15 @@ while main:
     # 화면을 그린다. 단색으로 채운다.
     screen.fill((0, 0, 0))
 
-    # 움직임에 감속을 넣어주는 코드를 작성한다.
-    lanes[0] += (laneset[0] - lanes[0]) / (2 * (maxframe / fps))
-    lanes[1] += (laneset[1] - lanes[1]) / (2 * (maxframe / fps))
-    lanes[2] += (laneset[2] - lanes[2]) / (2 * (maxframe / fps))
-    lanes[3] += (laneset[3] - lanes[3]) / (2 * (maxframe / fps))
+    # effect가 생기는 정도를 결정한다. effect가 생기고 사라지는 속도를 조절하고 싶으면 1을 바꾼다.
+    # 숫자를 크게 하면 effect가 천천히 생기고 천천히 사라진다.
+    lanes[0] += (laneset[0] - lanes[0]) / (1 * (maxframe / fps))
+    lanes[1] += (laneset[1] - lanes[1]) / (1 * (maxframe / fps))
+    lanes[2] += (laneset[2] - lanes[2]) / (1 * (maxframe / fps))
+    lanes[3] += (laneset[3] - lanes[3]) / (1 * (maxframe / fps))
 
-# text =========================================================================================
-    # text의 움직임을 결정한다.
+# effect =======================================================================================
+    # effect의 움직임을 결정한다.
     if Time > combo_time:
         combo_effect += (0 - combo_effect) / (1 * (maxframe / fps))
     if Time < combo_time:
