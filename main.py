@@ -2,7 +2,7 @@ import pygame, cv2, time, os, random, librosa, sys
 import mediapipe as mp
 
 # version 정보
-__version__ = '2.0.0'
+__version__ = '2.0.1'
 
 # pygame moduel을 import하고 초기화한다.
 pygame.init()
@@ -38,6 +38,7 @@ width5 = w*(1/2) + w*a3
 # 색깔과 관련된 변수를 정의한다.
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
+YELLOW = (255, 255, 0)
 
 # screen instance를 생성한다.
 screen = pygame.display.set_mode((w, h))
@@ -46,8 +47,8 @@ screen = pygame.display.set_mode((w, h))
 clock = pygame.time.Clock()
 
 # hand detection을 위해 cam을 딴다.
-cam = cv2.VideoCapture(1) # mac User.
-# cam = cv2.VideoCapture(0) # Window User.
+# cam = cv2.VideoCapture(1) # mac User.
+cam = cv2.VideoCapture(0) # Window User.
 
 # hand detection instance를 생성한다.
 mpHands = mp.solutions.hands
@@ -101,13 +102,19 @@ combo_effect2 = 0
 miss_anim = 0
 last_combo = 0
 
-# # outro ========================================================================================
+# outro ========================================================================================
 # outro에서 점수 계산을 위한 변수를 정의한다.
 excellent_cnt = 0     # 10 점
 perfect_cnt = 0       # 5 점
 bad_cnt = 0           # 3 점
 miss_cnt = 0          # 0 점
-# # ===============================================================================================
+# ===============================================================================================
+
+# life ==========================================================================================
+# 게임을 종료시키기 위한 변수를 정의한다.
+life_cnt = 5
+ingame_font_life = pygame.font.Font(font_file, int(w/40))
+# ===============================================================================================
 
 # song ==========================================================================================
 # 노래 file을 불러온다.
@@ -286,7 +293,7 @@ simultaneous_notes()
 # game function =================================================================================
 # game을 실행하는 메인 함수를 정의한다. ===========================================================
 def game():
-    global gst, Time, combo, miss_anim, last_combo, combo_effect, combo_effect2, combo_time, rate, speed, t1, t2, t3, t4, miss_cnt
+    global gst, Time, combo, miss_anim, last_combo, combo_effect, combo_effect2, combo_time, rate, speed, t1, t2, t3, t4, miss_cnt, life_cnt
     
     # 시간 측정을 위해 게임이 플레이 되는 시간을 구하고 combo_time을 다시 계산한다.
     gst = time.time()
@@ -401,6 +408,7 @@ def game():
                 combo_time = Time + 1
                 combo_effect2 = 1.3
                 miss_cnt += 1
+                life_cnt -= 1
                 rate = 'MISS'
                 t1.remove(tile_data)
 
@@ -415,6 +423,7 @@ def game():
                 combo_time = Time + 1
                 combo_effect2 = 1.3
                 miss_cnt += 1
+                life_cnt -= 1
                 rate = 'MISS'
                 t2.remove(tile_data)
 
@@ -429,6 +438,7 @@ def game():
                 combo_time = Time + 1
                 combo_effect2 = 1.3
                 miss_cnt += 1
+                life_cnt -= 1
                 rate = 'MISS'
                 t3.remove(tile_data)
 
@@ -443,6 +453,7 @@ def game():
                 combo_time = Time + 1
                 combo_effect2 = 1.3
                 miss_cnt += 1
+                life_cnt -= 1
                 rate = 'MISS'
                 t4.remove(tile_data)
 
@@ -470,6 +481,34 @@ def game():
         screen.blit(combo_text, (w*(1/2) - combo_text.get_width() * (1/2), a1 * 4 - combo_text.get_height() * (1/2)))
         screen.blit(rate_text, (w*(1/2) - rate_text.get_width() * (1/2), a1 * 8 - rate_text.get_height() * (1/2)))
         screen.blit(miss_text, (w*(1/2) - miss_text.get_width() * (1/2), a1 * 8 - miss_text.get_height() * (1/2)))
+
+        # 남은 life의 개수를 이용해 life 문구를 띄운다.
+        if life_cnt == 5:
+            life_text = 'LIFE : 5'
+            life_text_render = ingame_font_life.render(life_text, False, YELLOW)
+            screen.blit(life_text_render, (w*(1/2) - life_text_render.get_width() * (1/2), 10))
+        elif life_cnt == 4:
+            life_text = 'LIFE : 4'
+            life_text_render = ingame_font_life.render(life_text, False, YELLOW)
+            screen.blit(life_text_render, (w*(1/2) - life_text_render.get_width() * (1/2), 10))
+        elif life_cnt == 3:
+            life_text = 'LIFE : 3'
+            life_text_render = ingame_font_life.render(life_text, False, YELLOW)
+            screen.blit(life_text_render, (w*(1/2) - life_text_render.get_width() * (1/2), 10))
+        elif life_cnt == 2:
+            life_text = 'LIFE : 2'
+            life_text_render = ingame_font_life.render(life_text, False, YELLOW)
+            screen.blit(life_text_render, (w*(1/2) - life_text_render.get_width() * (1/2), 10))
+        elif life_cnt == 1:
+            life_text = 'LIFE : 1'
+            life_text_render = ingame_font_life.render(life_text, False, YELLOW)
+            screen.blit(life_text_render, (w*(1/2) - life_text_render.get_width() * (1/2), 10))
+        # 남은 life가 0이 되면 게임 오버 창으로 넘어간다. 노래를 종료하고 각 lane의 note를 초기화한다.
+        else:
+            main = False
+            pygame.mixer.music.stop()
+            t1, t2, t3, t4 = [], [], [], []
+            game_over()
 
     # hand dtection =======================================================================================
         # hand detection과 hand tracking을 구현한다.
@@ -603,7 +642,7 @@ def start_game():
 
 # 게임의 outro를 만드는 함수를 정의한다. ===================================================
 def end_game():
-    global gst, Time, excellent_cnt, perfect_cnt, bad_cnt, miss_cnt, rate, combo, combo_effect, combo_effect2, miss_anim, last_combo
+    global gst, Time, excellent_cnt, perfect_cnt, bad_cnt, miss_cnt, rate, combo, combo_effect, combo_effect2, miss_anim, last_combo, life_cnt
 
     # outro에서 사용할 font의 크기 및 위치를 변수로 정의한다.
     o1 = w / 25
@@ -652,7 +691,7 @@ def end_game():
     quit_button_box = pygame.Rect(w // 2 + 220, h // 2 - 55,  100, 100)
     restart_button_box = pygame.Rect(w // 2 - 330, h // 2 - 55,  100, 100)
 
-    # outro 실행.
+    # outro를 실행한다.
     outro = True
     while outro:
         for event in pygame.event.get():
@@ -708,11 +747,96 @@ def end_game():
                         combo_effect2 = 0
                         miss_anim = 0
                         last_combo = 0
+                        life_cnt = 5
                         generate_notes()
                         simultaneous_notes()      
                         game()
 
         pygame.display.flip()
 # ========================================================================================
+
+# 게임이 종료되었을 때 뜨는 창을 만드는 함수를 정의한다. =====================================
+def game_over():
+    global gst, Time, excellent_cnt, perfect_cnt, bad_cnt, miss_cnt, rate, combo, combo_effect, combo_effect2, miss_anim, last_combo, life_cnt
+
+    o1 = 1 / 2
+    o2 = h / 10
+
+    # 게임 오버되었을 때 창에 띄울 문자를 생성한다.
+    ingame_font_over = pygame.font.Font(font_file, int(w / 20))
+    over_txt = 'Game Over'
+    over_txt_render = ingame_font_over.render(over_txt, False, WHITE)
+
+    # 버튼 이미지를 불러온다.
+    quit_img = pygame.image.load(quit_path)
+    restart_img = pygame.image.load(restart_path)
+
+    # 이미지 사이즈를 지정한다.
+    quit_img = pygame.transform.scale(quit_img, (100, 100))
+    restart_img = pygame.transform.scale(restart_img, (100, 100))
+    quit_button_box = pygame.Rect(w // 2 + 220, h // 2 - 55,  100, 100)
+    restart_button_box = pygame.Rect(w // 2 - 330, h // 2 - 55,  100, 100)
+
+    # 게임이 종료되었을 때 실행되는 창을 띄운다.
+    over = True
+    while over:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                over = False
+                pygame.quit()
+                sys.exit()
+        
+        # 웹캠 이미지를 읽어온다.
+        _, img = cam.read()
+        # 좌우 반전 
+        image = cv2.flip(img, 1)
+        results = hands.process(image)
+
+        # game over 화면을 띄운다.
+        screen.fill(BLACK)
+        screen.blit(over_txt_render, (w*o1 - over_txt_render.get_width() * o1, 3 * o2))
+        screen.blit(quit_img, (w*o1 + 220,  4 * o2))
+        screen.blit(restart_img, (w*o1 - 330,  4 * o2))
+        pygame.draw.rect(screen, BLACK, quit_button_box, 2)
+        pygame.draw.rect(screen, BLACK, restart_button_box, 2)
+
+        # hand detection과 hand tracking을 구현한다
+        if results.multi_hand_landmarks:
+            for hand_landmarks in results.multi_hand_landmarks:
+                palm_x, palm_y = hand_landmarks.landmark[9].x*w, hand_landmarks.landmark[9].y*h
+                _, finger_y = hand_landmarks.landmark[12].x*w, hand_landmarks.landmark[12].y*h
+
+                pygame.draw.circle(screen, (0, 255, 0), (int(palm_x), int(palm_y)), 15)
+                if finger_y > palm_y:
+
+                    # 게임을 나간다.
+                    if quit_button_box.collidepoint(int(palm_x), int(palm_y)):
+                        over = False
+                        pygame.quit()
+                        sys.exit()
+
+                    # 초기화를 시키고 게임을 다시 시작한다.
+                    if restart_button_box.collidepoint(int(palm_x), int(palm_y)):
+                        over = False
+                        rate = 'START'
+                        excellent_cnt = 0     
+                        perfect_cnt = 0       
+                        bad_cnt = 0           
+                        miss_cnt = 0 
+                        combo = 0
+                        combo_effect = 0
+                        combo_effect2 = 0
+                        miss_anim = 0
+                        last_combo = 0
+                        life_cnt = 5
+                        generate_notes()
+                        simultaneous_notes()  
+                        game()
+
+        pygame.display.flip()
+# ========================================================================================
+
+
+
 # 게임을 시작한다.
 start_game()
