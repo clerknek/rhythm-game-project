@@ -2,7 +2,7 @@ import pygame, cv2, time, os, random, librosa, sys
 import mediapipe as mp
 
 # version 정보
-__version__ = '1.4.2'
+__version__ = '1.5.0'
 
 # pygame moduel을 import하고 초기화한다.
 pygame.init()
@@ -46,8 +46,8 @@ screen = pygame.display.set_mode((w, h))
 clock = pygame.time.Clock()
 
 # hand detection을 위해 cam을 딴다.
-# cam = cv2.VideoCapture(1) # mac User.
-cam = cv2.VideoCapture(0) # Window User.
+cam = cv2.VideoCapture(1) # mac User.
+# cam = cv2.VideoCapture(0) # Window User.
 
 # hand detection instance를 생성한다.
 mpHands = mp.solutions.hands
@@ -64,6 +64,8 @@ Cpath = os.path.dirname(__file__)
 Fpath = os.path.join(Cpath, 'font')
 # music 경로를 설정한다.
 Mpath = os.path.join(Cpath, 'music')
+# image 경로를 설정한다.
+Ipath = os.path.join(Cpath, 'image')
 # ===============================================================================================
 
 # font ==========================================================================================
@@ -103,7 +105,7 @@ miss_cnt = 0          # 0 점
 
 # song ==========================================================================================
 # 노래 file을 불러온다.
-song_file = os.path.join(Mpath, 'short_canon.wav')
+song_file = os.path.join(Mpath, 'more_short_canon.wav')
 
 # beat를 생성한다.
 audio, _ = librosa.load(song_file)
@@ -296,9 +298,11 @@ def game():
                 # 창을 지운다.
                 main = False
 
+        # 웹캠 이미지를 읽어온다.
         _, img = cam.read()
+        # 좌우 반전 
         image = cv2.flip(img, 1)
-        results = hands.process(image) 
+        results = hands.process(image)
 
         if len(t1) > 0:
             rate_data[0] = t1[0][0]
@@ -552,20 +556,23 @@ def start_game():
     
     intro = True
     while intro:
-        _, img = cam.read()
-        image = cv2.flip(img, 1)
-        results = hands.process(image)
-        screen.fill(BLACK)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 intro = False
                 pygame.quit()
                 sys.exit()
-                
-        pygame.draw.rect(screen, WHITE, start_box, 2)
+
+        # 웹캠 이미지를 읽어온다.
+        _, img = cam.read()
+        # 좌우 반전 
+        image = cv2.flip(img, 1)
+        results = hands.process(image)
+
+        screen.fill(BLACK) 
         screen.blit(box_txt, (start_box.x + 10, start_box.y +5))
         screen.blit(info_text, (205, 400))
+        pygame.draw.rect(screen, WHITE, start_box, 2)
 
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
@@ -584,7 +591,7 @@ def start_game():
 
 # 게임의 outro를 만드는 함수를 정의한다. ===================================================
 def game_outro():
-    global excellent_cnt, perfect_cnt, bad_cnt, miss_cnt
+    global excellent_cnt, perfect_cnt, bad_cnt, miss_cnt, rate, combo, combo_effect, combo_effect2, miss_anim, last_combo, gst, Time
 
     # outro에서 사용할 font의 크기 및 위치를 변수로 정의한다.
     o1 = w / 25
@@ -622,6 +629,17 @@ def game_outro():
     miss_txt_render = ingame_font_point.render(miss_txt, False, WHITE)
     total_txt_render = ingame_font_total.render(total_txt, False, WHITE)
 
+    # 버튼 이미지를 불러온다.
+    quit_img = pygame.image.load(Ipath, 'quit.png')
+    restart_img = pygame.image.load(Ipath, 'restart.png')
+
+    # 이미지 사이즈를 지정한다.
+    quit_img = pygame.transform.scale(quit_img, (100, 100))
+    restart_img = pygame.transform.scale(restart_img, (100, 100))
+
+    quit_button_box = pygame.Rect(w // 2 + 220, h // 2 - 55,  100, 100)
+    restart_button_box = pygame.Rect(w // 2 - 330, h // 2 - 55,  100, 100)
+
     outro = True
 
     while outro:
@@ -631,6 +649,12 @@ def game_outro():
                 pygame.quit()
                 sys.exit()
         
+        # 웹캠 이미지를 읽어온다.
+        _, img = cam.read()
+        # 좌우 반전 
+        image = cv2.flip(img, 1)
+        results = hands.process(image)
+        
         # outro 화면을 띄운다.
         screen.fill(BLACK)
         screen.blit(end_txt_render, (w*(1/2) - end_txt_render.get_width() * (1/2), o4))
@@ -639,6 +663,42 @@ def game_outro():
         screen.blit(bad_txt_render, (w*(1/2) - bad_txt_render.get_width() * (1/2), 5 * o4))
         screen.blit(miss_txt_render, (w*(1/2) - miss_txt_render.get_width() * (1/2), 6 * o4))
         screen.blit(total_txt_render, (w*(1/2) - total_txt_render.get_width() * (1/2), 8 * o4))
+        screen.blit(quit_img, (w*(1/2) + 220,  4 * o4))
+        screen.blit(restart_img, (w*(1/2) - 330,  4 * o4))
+        pygame.draw.rect(screen, BLACK, quit_button_box, 2)
+        pygame.draw.rect(screen, BLACK, restart_button_box, 2)
+
+        # hand detection과 hand tracking을 구현한다
+        if results.multi_hand_landmarks:
+            for hand_landmarks in results.multi_hand_landmarks:
+                palm_x, palm_y = hand_landmarks.landmark[9].x*w, hand_landmarks.landmark[9].y*h
+                _, finger_y = hand_landmarks.landmark[12].x*w, hand_landmarks.landmark[12].y*h
+
+                pygame.draw.circle(screen, (0, 255, 0), (int(palm_x), int(palm_y)), 15)
+                if finger_y > palm_y:
+
+                    # 게임을 나간다.
+                    if quit_button_box.collidepoint(int(palm_x), int(palm_y)):
+                        outro = False
+                        pygame.quit()
+                        sys.exit()
+
+                    # 초기화를 시키고 게임을 다시 시작한다.
+                    if restart_button_box.collidepoint(int(palm_x), int(palm_y)):
+                        outro = False
+                        rate = 'START'
+                        excellent_cnt = 0     
+                        perfect_cnt = 0       
+                        bad_cnt = 0           
+                        miss_cnt = 0 
+                        combo = 0
+                        combo_effect = 0
+                        combo_effect2 = 0
+                        miss_anim = 0
+                        last_combo = 0
+                        generate_notes()
+                        simultaneous_notes()      
+                        game()
 
         pygame.display.flip()
 # ========================================================================================
