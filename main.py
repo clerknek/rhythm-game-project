@@ -2,7 +2,7 @@ import pygame, cv2, time, os, random, librosa, sys
 import mediapipe as mp
 
 # version 정보
-__version__ = '1.5.1'
+__version__ = '2.0.0'
 
 # pygame moduel을 import하고 초기화한다.
 pygame.init()
@@ -46,8 +46,8 @@ screen = pygame.display.set_mode((w, h))
 clock = pygame.time.Clock()
 
 # hand detection을 위해 cam을 딴다.
-# cam = cv2.VideoCapture(1) # mac User.
-cam = cv2.VideoCapture(0) # Window User.
+cam = cv2.VideoCapture(1) # mac User.
+# cam = cv2.VideoCapture(0) # Window User.
 
 # hand detection instance를 생성한다.
 mpHands = mp.solutions.hands
@@ -557,13 +557,14 @@ def game():
 # 게임의 intro를 만드는 함수를 정의한다. ===================================================
 def start_game():
 
+    # intro 화면에 띄울 문구를 작성한다.
     start_box = pygame.Rect(w // 2 - 130, h // 2 - 80, 265, 50)
     box_txt = ingame_font_rate.render('START GAME', True, WHITE)
     info_text = ingame_font_rate.render("CLICK THE BUTTON TO START", True, WHITE)
     
+    # intro 실행.
     intro = True
     while intro:
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 intro = False
@@ -576,17 +577,21 @@ def start_game():
         image = cv2.flip(img, 1)
         results = hands.process(image)
 
+        # intro 화면을 띄운다.
         screen.fill(BLACK) 
         screen.blit(box_txt, (start_box.x + 10, start_box.y +5))
         screen.blit(info_text, (205, 400))
         pygame.draw.rect(screen, WHITE, start_box, 2)
 
+        # hand detection과 hand tracking을 구현한다.
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
                 palm_x, palm_y = hand_landmarks.landmark[9].x*w, hand_landmarks.landmark[9].y*h
                 _, finger_y = hand_landmarks.landmark[12].x*w, hand_landmarks.landmark[12].y*h
 
                 pygame.draw.circle(screen, (0, 255, 0), (int(palm_x), int(palm_y)), 15)
+
+                # 게임을 시작한다.
                 if finger_y > palm_y:
                     if start_box.collidepoint(int(palm_x), int(palm_y)):
                         game()
@@ -647,8 +652,8 @@ def end_game():
     quit_button_box = pygame.Rect(w // 2 + 220, h // 2 - 55,  100, 100)
     restart_button_box = pygame.Rect(w // 2 - 330, h // 2 - 55,  100, 100)
 
+    # outro 실행.
     outro = True
-
     while outro:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -709,12 +714,5 @@ def end_game():
 
         pygame.display.flip()
 # ========================================================================================
-
-
-
-# 게임을 시작한다. ========================================================================
-# 게임에서 사용할 절대 시간을 구한다.
-# gst = time.time()
-# Time = time.time() - gst
-
+# 게임을 시작한다.
 start_game()
