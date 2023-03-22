@@ -1,8 +1,8 @@
 import pygame, cv2, time, os, random, librosa, sys
 import mediapipe as mp
 
-# 버전 정보
-__version__ = '1.4.1'
+# version 정보
+__version__ = '1.4.2'
 
 # pygame moduel을 import하고 초기화한다.
 pygame.init()
@@ -243,12 +243,8 @@ def rating(n):
     [return]
         None
     '''
-    global combo, miss_anim, last_combo, combo_effect, combo_effect2, combo_time, rate, bad_cnt, perfect_cnt, excellent_cnt
+    global gst, Time, combo, miss_anim, last_combo, combo_effect, combo_effect2, combo_time, rate, bad_cnt, perfect_cnt, excellent_cnt
     
-
-    gst = time.time()
-    Time = time.time() - gst
-
     # rate_data의 n번째 note들의 정보를 가져와 판단한다.
     if abs(a1*9 - rate_data[n-1] < 950*speed*(h/900)) and abs(a1*9 - rate_data[n-1] >= 200*speed*(h/900)):
         last_combo = combo
@@ -282,14 +278,11 @@ simultaneous_notes()
 # game function =================================================================================
 # game을 실행하는 메인 함수를 정의한다. ===========================================================
 def game():
-    global combo, miss_anim, last_combo, combo_effect, combo_effect2, rate, speed, t1, t2, t3, t4, miss_cnt
+    global gst, Time, combo, miss_anim, last_combo, combo_effect, combo_effect2, combo_time, rate, speed, t1, t2, t3, t4, miss_cnt
     
-    # 시간 측정을 위해 절대 시간을 구한다.
-    gst = time.time()
+    # 시간 측정을 위해 게임이 플레이 되는 시간을 구하고 combo_time을 다시 계산한다.
     Time = time.time() - gst
-
     combo_time = Time + 1
-    
     
     # 노래 file을 재생한다.
     pygame.mixer.music.play()
@@ -473,7 +466,7 @@ def game():
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
                 palm_x, palm_y = hand_landmarks.landmark[9].x*w, hand_landmarks.landmark[9].y*h
-                finger_x, finger_y = hand_landmarks.landmark[12].x*w, hand_landmarks.landmark[12].y*h
+                _, finger_y = hand_landmarks.landmark[12].x*w, hand_landmarks.landmark[12].y*h
 
                 if grab_TF[0] == 2:
                     if finger_y > palm_y:
@@ -651,5 +644,10 @@ def game_outro():
 # ========================================================================================
 
 
+
+# 게임을 시작한다. ========================================================================
+# 게임에서 사용할 절대 시간을 구한다.
+gst = time.time()
+Time = time.time() - gst
 
 start_game()
