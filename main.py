@@ -1,8 +1,8 @@
-import pygame, cv2, time, os, random, librosa, sys
+import pygame, cv2, time, os, random, librosa, sys, math
 import mediapipe as mp
 
 # version 정보
-__version__ = '2.0.3'
+__version__ = '2.0.4'
 
 # pygame moduel을 import하고 초기화한다.
 pygame.init()
@@ -41,7 +41,7 @@ width5 = w*(1/2) + w*a3
 # 색깔과 관련된 변수를 정의한다.
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
-GREEN = (0, 255, 0)
+GREEN = (0, 150, 0)
 
 # screen instance를 생성한다.
 screen = pygame.display.set_mode((w, h))
@@ -83,8 +83,8 @@ rate_text = ingame_font_rate.render(str(rate), False, WHITE)
 
 # image =========================================================================================
 # outro에서 띄울 image path를 설정한다.
-quit_path = os.path.join(Ipath, 'quit_1.png')
-restart_path = os.path.join(Ipath, 'restart_1.png')
+quit_path = os.path.join(Ipath, 'quit.png')
+restart_path = os.path.join(Ipath, 'restart.png')
 # ===============================================================================================
 
 # note가 떨어지는 속도를 설정한다.
@@ -93,6 +93,9 @@ speed = 1
 # lane이 4개이므로 note와 관련되 정보를 담을 list 4개를 생성한다.
 # [ty, tst]가 하나의 element로 들어간다.
 t1, t2, t3, t4 = [], [], [], []
+
+# spark 효과를 담을 list를 정의한다.
+sparks = []
 
 # 키 누름을 감지하는 list를 정의한다.
 lanes = [0, 0, 0, 0]
@@ -141,6 +144,64 @@ pygame.mixer.music.load(song_file)
 # ===============================================================================================
 
 # function ======================================================================================
+# Spark VFX class를 선언한다.
+class Spark():
+    def __init__(self, loc, angle, speed, color, scale = 1):
+        self.loc = loc
+        self.angle = angle
+        self.speed = speed
+        self.scale = scale
+        self.color = color
+        self.alive = True
+
+    def point_towards(self, angle, rate):
+        rotate_direction = ((angle - self.angle + math.pi * 3) % (math.pi * 2)) - math.pi
+        try:
+            rotate_sign = abs(rotate_direction) / rotate_direction
+        except ZeroDivisionError:
+            rotate_sing = 1
+        if abs(rotate_direction) < rate:
+            self.angle = angle
+        else:
+            self.angle += rate * rotate_sign
+
+    def calculate_movement(self, dt):
+        return [math.cos(self.angle) * self.speed * dt, math.sin(self.angle) * self.speed * dt]
+
+
+    # 중력과 마찰 기능을 추가한다.
+    def velocity_adjust(self, friction, force, terminal_velocity, dt):
+        movement = self.calculate_movement(dt)
+        movement[1] = min(terminal_velocity, movement[1] + force * dt)
+        movement[0] *= friction
+        self.angle = math.atan2(movement[1], movement[0])
+        # 더 현실적이 되고 싶다면, 여기서 속도를 조절해야 한다.
+
+    def move(self, dt):
+        movement = self.calculate_movement(dt)
+        self.loc[0] += movement[0]
+        self.loc[1] += movement[1]
+
+        # 각도와 관련된 많은 옵션들을 가지고 놀 수 있습니다.
+        self.point_towards(math.pi / 2, 0.02)
+        self.velocity_adjust(0.975, 0.2, 8, dt)
+        # self.angle += 0.1
+
+        self.speed -= 0.1
+
+        if self.speed <= 0:
+            self.alive = False
+
+    def draw(self, surf, offset=[0, 0]):
+        if self.alive:
+            points = [
+                [self.loc[0] + math.cos(self.angle) * self.speed * self.scale, self.loc[1] + math.sin(self.angle) * self.speed * self.scale],
+                [self.loc[0] + math.cos(self.angle + math.pi / 2) * self.speed * self.scale * 0.3, self.loc[1] + math.sin(self.angle + math.pi / 2) * self.speed * self.scale * 0.3],
+                [self.loc[0] - math.cos(self.angle) * self.speed * self.scale * 3.5, self.loc[1] - math.sin(self.angle) * self.speed * self.scale * 3.5],
+                [self.loc[0] + math.cos(self.angle - math.pi / 2) * self.speed * self.scale * 0.3, self.loc[1] - math.sin(self.angle + math.pi / 2) * self.speed * self.scale * 0.3],
+                ]
+            pygame.draw.polygon(surf, self.color, points)
+
 # note를 생성하는 함수를 정의한다.
 def generate_notes():
     '''
@@ -631,16 +692,28 @@ def start_game():
         screen.blit(info_txt_render, (230, 470))
         pygame.draw.rect(screen, WHITE, start_box, 4)
 
+        # Spark VFX 효과를 일으킨다.
+        for i, spark in sorted(enumerate(sparks), reverse=True):
+            spark.move(1)
+            spark.draw(screen)
+            if not spark.alive:
+                sparks.pop(i)
+
         # hand detection과 hand tracking을 구현한다.
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
                 palm_x, palm_y = hand_landmarks.landmark[9].x*w, hand_landmarks.landmark[9].y*h
                 _, finger_y = hand_landmarks.landmark[12].x*w, hand_landmarks.landmark[12].y*h
 
-                pygame.draw.circle(screen, GREEN, (int(palm_x), int(palm_y)), 15)
+                pygame.draw.circle(screen, GREEN, (int(palm_x), int(palm_y)), 10)
 
-                # 게임을 시작한다.
                 if finger_y > palm_y:
+
+                    # 주먹을 쥐었을때 spark가 일어난다.
+                    for i in range(10):
+                        sparks.append(Spark([int(palm_x), int(palm_y)], math.radians(random.randint(0, 360)), random.randint(3, 6), (255, 255, 255), 2))
+
+                    # 게임을 시작한다.
                     if start_box.collidepoint(int(palm_x), int(palm_y)):
                         game()
                          
@@ -728,14 +801,25 @@ def end_game():
         pygame.draw.rect(screen, BLACK, quit_button_box, 2)
         pygame.draw.rect(screen, BLACK, restart_button_box, 2)
 
+        # Spark VFX 효과를 일으킨다.
+        for i, spark in sorted(enumerate(sparks), reverse=True):
+            spark.move(1)
+            spark.draw(screen)
+            if not spark.alive:
+                sparks.pop(i)
+
         # hand detection과 hand tracking을 구현한다
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
                 palm_x, palm_y = hand_landmarks.landmark[9].x*w, hand_landmarks.landmark[9].y*h
                 _, finger_y = hand_landmarks.landmark[12].x*w, hand_landmarks.landmark[12].y*h
 
-                pygame.draw.circle(screen, GREEN, (int(palm_x), int(palm_y)), 15)
+                pygame.draw.circle(screen, GREEN, (int(palm_x), int(palm_y)), 10)
                 if finger_y > palm_y:
+
+                    # 주먹을 쥐었을때 spark가 일어난다.
+                    for i in range(10):
+                        sparks.append(Spark([int(palm_x), int(palm_y)], math.radians(random.randint(0, 360)), random.randint(3, 6), (255, 255, 255), 2))
 
                     # 게임을 나간다.
                     if quit_button_box.collidepoint(int(palm_x), int(palm_y)):
@@ -809,14 +893,26 @@ def game_over():
         pygame.draw.rect(screen, BLACK, quit_button_box, 2)
         pygame.draw.rect(screen, BLACK, restart_button_box, 2)
 
+        # Spark VFX 효과를 일으킨다.
+        for i, spark in sorted(enumerate(sparks), reverse=True):
+            spark.move(1)
+            spark.draw(screen)
+            if not spark.alive:
+                sparks.pop(i)
+
         # hand detection과 hand tracking을 구현한다
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
                 palm_x, palm_y = hand_landmarks.landmark[9].x*w, hand_landmarks.landmark[9].y*h
                 _, finger_y = hand_landmarks.landmark[12].x*w, hand_landmarks.landmark[12].y*h
 
-                pygame.draw.circle(screen, GREEN, (int(palm_x), int(palm_y)), 15)
+                pygame.draw.circle(screen, GREEN, (int(palm_x), int(palm_y)), 10)
                 if finger_y > palm_y:
+
+                    # 주먹을 쥐었을때 spark가 일어난다.
+                    for i in range(10):
+                        sparks.append(Spark([int(palm_x), int(palm_y)], math.radians(random.randint(0, 360)), random.randint(3, 6), (255, 255, 255), 2))
+
 
                     # 게임을 나간다.
                     if quit_button_box.collidepoint(int(palm_x), int(palm_y)):
