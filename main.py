@@ -2,7 +2,7 @@ import pygame, cv2, time, os, random, librosa, sys
 import mediapipe as mp
 
 # version 정보
-__version__ = '2.0.1'
+__version__ = '2.0.2'
 
 # pygame moduel을 import하고 초기화한다.
 pygame.init()
@@ -27,6 +27,9 @@ a12 = h / 100
 a13 = w / 20
 a14 = w / 30
 a15 = h / 2
+a16 = int(w / 14)
+a17 = int(h / 20)
+a18 = int(h / 10)
 
 # lane 좌표를 설정한다.
 width1 = w*(1/2) - w*a3
@@ -38,7 +41,7 @@ width5 = w*(1/2) + w*a3
 # 색깔과 관련된 변수를 정의한다.
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
-YELLOW = (255, 255, 0)
+GREEN = (0, 255, 0)
 
 # screen instance를 생성한다.
 screen = pygame.display.set_mode((w, h))
@@ -111,9 +114,12 @@ miss_cnt = 0          # 0 점
 # ===============================================================================================
 
 # life ==========================================================================================
-# 게임을 종료시키기 위한 변수를 정의한다.
+# 게임을 종료시키기 위한 변수와 life image를 load한다.
+l = int(w / 25)
 life_cnt = 5
-ingame_font_life = pygame.font.Font(font_file, int(w/40))
+life_img_path = os.path.join(Ipath, 'heart.png')
+life_img = pygame.image.load(life_img_path)
+life_img = pygame.transform.scale(life_img, (l, l))
 # ===============================================================================================
 
 # song ==========================================================================================
@@ -484,25 +490,20 @@ def game():
 
         # 남은 life의 개수를 이용해 life 문구를 띄운다.
         if life_cnt == 5:
-            life_text = 'LIFE : 5'
-            life_text_render = ingame_font_life.render(life_text, False, YELLOW)
-            screen.blit(life_text_render, (w*(1/2) - life_text_render.get_width() * (1/2), 10))
+            for i in range(life_cnt):
+                screen.blit(life_img, (w - a16, a17 + a18*i))
         elif life_cnt == 4:
-            life_text = 'LIFE : 4'
-            life_text_render = ingame_font_life.render(life_text, False, YELLOW)
-            screen.blit(life_text_render, (w*(1/2) - life_text_render.get_width() * (1/2), 10))
+            for i in range(life_cnt):
+                screen.blit(life_img, (w - a16, a17 + a18*i))
         elif life_cnt == 3:
-            life_text = 'LIFE : 3'
-            life_text_render = ingame_font_life.render(life_text, False, YELLOW)
-            screen.blit(life_text_render, (w*(1/2) - life_text_render.get_width() * (1/2), 10))
+            for i in range(life_cnt):
+                screen.blit(life_img, (w - a16, a17 + a18*i))
         elif life_cnt == 2:
-            life_text = 'LIFE : 2'
-            life_text_render = ingame_font_life.render(life_text, False, YELLOW)
-            screen.blit(life_text_render, (w*(1/2) - life_text_render.get_width() * (1/2), 10))
+            for i in range(life_cnt):
+                screen.blit(life_img, (w - a16, a17 + a18*i))
         elif life_cnt == 1:
-            life_text = 'LIFE : 1'
-            life_text_render = ingame_font_life.render(life_text, False, YELLOW)
-            screen.blit(life_text_render, (w*(1/2) - life_text_render.get_width() * (1/2), 10))
+            for i in range(life_cnt):
+                screen.blit(life_img, (w - a16, a17 + a18*i))
         # 남은 life가 0이 되면 게임 오버 창으로 넘어간다. 노래를 종료하고 각 lane의 note를 초기화한다.
         else:
             main = False
@@ -545,7 +546,7 @@ def game():
                     else:
                         grab_TF[1] = False
 
-                pygame.draw.circle(screen, (0, 255, 0), (int(palm_x), int(palm_y)), 15)
+                pygame.draw.circle(screen, GREEN, (int(palm_x), int(palm_y)), 15)
                 if grab_TF[0] == True or grab_TF[1] == True:
                     # lane 1
                     if laneset[0] == 1:
@@ -628,7 +629,7 @@ def start_game():
                 palm_x, palm_y = hand_landmarks.landmark[9].x*w, hand_landmarks.landmark[9].y*h
                 _, finger_y = hand_landmarks.landmark[12].x*w, hand_landmarks.landmark[12].y*h
 
-                pygame.draw.circle(screen, (0, 255, 0), (int(palm_x), int(palm_y)), 15)
+                pygame.draw.circle(screen, GREEN, (int(palm_x), int(palm_y)), 15)
 
                 # 게임을 시작한다.
                 if finger_y > palm_y:
@@ -725,7 +726,7 @@ def end_game():
                 palm_x, palm_y = hand_landmarks.landmark[9].x*w, hand_landmarks.landmark[9].y*h
                 _, finger_y = hand_landmarks.landmark[12].x*w, hand_landmarks.landmark[12].y*h
 
-                pygame.draw.circle(screen, (0, 255, 0), (int(palm_x), int(palm_y)), 15)
+                pygame.draw.circle(screen, GREEN, (int(palm_x), int(palm_y)), 15)
                 if finger_y > palm_y:
 
                     # 게임을 나간다.
@@ -806,7 +807,7 @@ def game_over():
                 palm_x, palm_y = hand_landmarks.landmark[9].x*w, hand_landmarks.landmark[9].y*h
                 _, finger_y = hand_landmarks.landmark[12].x*w, hand_landmarks.landmark[12].y*h
 
-                pygame.draw.circle(screen, (0, 255, 0), (int(palm_x), int(palm_y)), 15)
+                pygame.draw.circle(screen, GREEN, (int(palm_x), int(palm_y)), 15)
                 if finger_y > palm_y:
 
                     # 게임을 나간다.
