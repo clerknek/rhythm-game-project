@@ -4,17 +4,17 @@
 - 사용 언어: <img src="https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white"/>
 
 # 목차
-#### [1. 프로젝트 주요 설계 내용](프로젝트-주요-설계-내용)
-#### [2. 사용 라이브러리](사용-라이브러리)
-#### [3. 데모](데모)
+#### [1. 프로젝트 주요 설계 내용](#1-프로젝트-주요-설계-내용)
+#### [2. 사용 라이브러리](#2-사용-라이브러리)
+#### [3. 데모](#3-데모)
 
-## 프로젝트 주요 설계 내용
+## 1. 프로젝트 주요 설계 내용
 ![slide_2](https://user-images.githubusercontent.com/71575861/227393083-25f31077-ca6c-4f0b-b730-72d192b9d1f1.png)
 ![ZZC_최종ver](https://user-images.githubusercontent.com/71575861/227392578-2b4d2fd1-40da-44d0-b066-f799674e816b.gif)
 ![slide_5](https://user-images.githubusercontent.com/71575861/227392806-3841c68b-9b4e-4a1f-8e57-5655703f7f4f.gif)
 ![slide_6](https://user-images.githubusercontent.com/71575861/227392809-8e4025d8-39e7-4710-bf05-7d271e3208a0.gif)
 
-## 사용 라이브러리
+## 2. 사용 라이브러리
 - [mediapipe](https://google.github.io/mediapipe/) : hand tracking을 위한 모델이 준비되어 있는 라이브러리
 <img src="https://user-images.githubusercontent.com/71575861/227393579-5a12a0c9-caba-473b-b7a7-8d13aa9e6040.png" width="250"/>
 
@@ -25,4 +25,4 @@
 <img src="https://user-images.githubusercontent.com/71575861/227393597-90f7b0d7-5e39-465a-a6b7-710ad73a5100.png" width="250"/>
 
 
-## 데모
+## 3. 데모
