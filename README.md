@@ -4,9 +4,13 @@
 - 사용 언어: <img src="https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white"/>
 
 # 목차
-#### [1. 프로젝트 주요 설계 내용](#프로젝트-주요-설계-내용)
-#### [2. 사용 라이브러리](#사용-라이브러리)
-#### [3. 데모](#데모)
+#### [1. 데모](#데모)
+#### [2. 프로젝트 주요 설계 내용](#프로젝트-주요-설계-내용)
+#### [3. 사용 라이브러리](#사용-라이브러리)
+
+
+## 데모
+![zzc-demo](https://user-images.githubusercontent.com/71575861/227396803-47c1a603-ac0b-413d-9d8e-a151b54a29dc.gif)
 
 ## 프로젝트 주요 설계 내용
 ![slide_2](https://user-images.githubusercontent.com/71575861/227393083-25f31077-ca6c-4f0b-b730-72d192b9d1f1.png)
@@ -25,5 +29,4 @@
 <img src="https://user-images.githubusercontent.com/71575861/227393597-90f7b0d7-5e39-465a-a6b7-710ad73a5100.png" width="250"/>
 
 
-## 데모
-![zzc-demo](https://user-images.githubusercontent.com/71575861/227396803-47c1a603-ac0b-413d-9d8e-a151b54a29dc.gif)
+
