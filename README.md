@@ -3,10 +3,10 @@
 - matplotlib의 hand tracking 기술과 pygame을 통한 리듬게임
 - 사용 언어: <img src="https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white"/>
 
-> # 목차
-> #### [1. 프로젝트 주요 설계 내용](프로젝트-주요-설계-내용)
-> #### [2. 사용 라이브러리](사용-라이브러리)
-> #### [3. 데모](데모)
+# 목차
+#### [1. 프로젝트 주요 설계 내용](프로젝트-주요-설계-내용)
+#### [2. 사용 라이브러리](사용-라이브러리)
+#### [3. 데모](데모)
 
 ## 프로젝트 주요 설계 내용
 ![slide_2](https://user-images.githubusercontent.com/71575861/227393083-25f31077-ca6c-4f0b-b730-72d192b9d1f1.png)
