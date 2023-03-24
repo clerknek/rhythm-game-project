@@ -1,14 +1,22 @@
-# 리듬 게임 프로젝트
-- openCV와 pygame을 통한 리듬게임
+# Zam-Zam Circulation
+![image](https://user-images.githubusercontent.com/71575861/227392075-0757992e-3254-4921-bd21-39de8cbadb3a.png)
+- matplotlib의 hand tracking 기술과 pygame을 통한 리듬게임
 - 사용 언어: <img src="https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white"/>
 ## 프로젝트 주요 설계 내용
-- 연령대에 맞춰 노래를 설정한다.
-  - 어르신들을 트로트에 맞춰서 리듬 게임을 플레이하고 재활 치료를 한다.
-  - 어린 아이들은 동요에 맞춰 리듬 게임을 한다.
-  - 성인은 뉴진스의 하입 보이요.
-- 처음에 노래는 1분 미리 듣기만 가능하고 돈을 주면 끝까지 할 수 있다.
-- 거기에 돈을 더 주면 원하는 노래에 맞춰 리듬 게임을 할 수 있다.
-- DDR 게임 형식으로 구현한다.
-- 플레이어의 모습은 투명도를 설정해 게임 화면 배경에 비치도록 한다. 그래서 자신의 모습을 확인할 수 있도록 한다.
-- 리듬 게임의 블럭이 떨어지는 레인은 4개로 설정한다.
-- 손을 편 상태에서 주먹을 쥐면 터치를 한 것이고, 손의 위치를 움직여 레인을 옮길 수 있다.
+![slide_2](https://user-images.githubusercontent.com/71575861/227393083-25f31077-ca6c-4f0b-b730-72d192b9d1f1.png)
+![ZZC_최종ver](https://user-images.githubusercontent.com/71575861/227392578-2b4d2fd1-40da-44d0-b066-f799674e816b.gif)
+![slide_5](https://user-images.githubusercontent.com/71575861/227392806-3841c68b-9b4e-4a1f-8e57-5655703f7f4f.gif)
+![slide_6](https://user-images.githubusercontent.com/71575861/227392809-8e4025d8-39e7-4710-bf05-7d271e3208a0.gif)
+
+## 사용 라이브러리
+- [mediapipe](https://google.github.io/mediapipe/) : hand tracking을 위한 모델이 준비되어 있는 라이브러리
+<img src="https://user-images.githubusercontent.com/71575861/227393579-5a12a0c9-caba-473b-b7a7-8d13aa9e6040.png" width="250")
+
+- [pygame](https://www.pygame.org/) : 게임을 동작하는 데 도움을 주는 라이브러
+![image](https://user-images.githubusercontent.com/71575861/227393588-df85b1cc-530c-4168-9d4e-1e0bee793d78.png)
+
+- [librosa](https://librosa.org/) : 음악을 통한 노트 생성에 도움을 주는 라이브러리
+![image](https://user-images.githubusercontent.com/71575861/227393597-90f7b0d7-5e39-465a-a6b7-710ad73a5100.png)
+
+
+## 데모
